@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="SoundDeck.App.Views.OsdWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="SoundDeck OSD">
+
+    <Grid
+        x:Name="Root"
+        Padding="18,0,20,0"
+        ColumnSpacing="14">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <FontIcon
+            x:Name="OsdIcon"
+            VerticalAlignment="Center"
+            FontSize="18" />
+        <StackPanel
+            Grid.Column="1"
+            VerticalAlignment="Center"
+            Spacing="4">
+            <TextBlock
+                x:Name="OsdText"
+                Style="{StaticResource BodyTextBlockStyle}"
+                TextTrimming="CharacterEllipsis" />
+            <ProgressBar
+                x:Name="OsdBar"
+                Maximum="100"
+                Minimum="0" />
+        </StackPanel>
+        <TextBlock
+            x:Name="OsdValue"
+            Grid.Column="2"
+            MinWidth="26"
+            VerticalAlignment="Center"
+            Style="{StaticResource BodyStrongTextBlockStyle}"
+            TextAlignment="Right" />
+    </Grid>
+</Window>

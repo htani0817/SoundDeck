@@ -1,0 +1,17 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="ARM64" />
+  </Configurations>
+  <Folder Name="/src/">
+    <Project Path="src/SoundDeck.Core/SoundDeck.Core.csproj" />
+    <Project Path="src/SoundDeck.Audio/SoundDeck.Audio.csproj" />
+    <Project Path="src/SoundDeck.App/SoundDeck.App.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="*|ARM64" Project="ARM64" />
+    </Project>
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SoundDeck.Core.Tests/SoundDeck.Core.Tests.csproj" />
+  </Folder>
+</Solution>
