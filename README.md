@@ -13,117 +13,150 @@ related:
 
 # SoundDeck
 
-Windows 11 向けの音量ミキサーです。通知領域に常駐し、アイコンを押すとクイック設定と同じ見た目のパネルが開きます。EarTrumpet でできることに加えて、プロファイル、アプリ音量の記憶、マイク管理、自動切替ルール、ダッキングを入れています。
+Windows 11 向けの音量ミキサーです。通知領域（タスクバー右下）に常駐し、アイコンをクリックすると Windows 11 のクイック設定と同じ見た目のパネルが開きます。アプリごとの音量と出力先に加えて、プロファイル、アプリ音量の記憶、マイクのミュート用ホットキー、デバイスの抜き差しに合わせた自動切替、通話中に他の音を下げるダッキングを使えます。
 
-> [!info] 現在地
-> 機能はひととおり実装済みです。ビルド（警告ゼロ）、Core の自動テスト 28 件、画面の描画確認（フライアウト・設定全ページ・OSD・トレイアイコン）まで済んでいます。音量を実際に動かす操作の確認は、利用者の環境で行う段階です（[[#実機で確認してほしいこと]]）。
+[English summary](#english)
 
-## できること
+## ダウンロードと起動
 
-### EarTrumpet と同じこと
+1. [Releases](https://github.com/htani0817/SoundDeck/releases) から `SoundDeck-win-x64.zip` をダウンロードします
+2. 好きな場所に展開します（例: `C:\Users\<ユーザー名>\AppData\Local\Programs\SoundDeck`）
+3. 展開したフォルダーの `SoundDeck.exe` を起動します
 
-- 出力デバイスごとの音量・ミュートと、そのデバイスで鳴っているアプリごとの音量・ミュート
-- ピークメーター（スライダーの下に、今鳴っている音の大きさ）
-- 既定デバイスの切り替え（通信デバイスも一緒に切り替えるかを選べる）
-- アプリごとの出力先の指定（「…」→「出力先」）
-- トレイアイコン上のホイールで既定デバイスの音量、中クリックでミュート
+インストーラーはありません。.NET や Windows App SDK を別に入れる必要もありません（ZIP に同梱しています）。
 
-### SoundDeck で足したこと
+> [!WARNING]
+> 実行ファイルにはコード署名をしていないため、初回起動時に「Windows によって PC が保護されました」と表示されることがあります。「詳細情報」→「実行」を押すと起動できます。
 
-| 機能 | 中身 |
+> [!TIP]
+> 起動すると通知領域にスピーカーのアイコンが出ます。見当たらないときはタスクバー右端の「^」の中を確認してください。常に表示したい場合は、アイコンをタスクバーへドラッグするか、Windows の「設定」→「個人用設定」→「タスクバー」→「その他のシステム トレイ アイコン」で SoundDeck をオンにします。
+
+## 使い方
+
+| 操作 | 動作 |
 | --- | --- |
-| 入力デバイス | 「入力」タブでマイクの音量・ミュート・既定を操作。マイクを使っているアプリも一覧に出る |
-| マイクミュートのホットキー | 既定は `Ctrl + Alt + M`。画面下に OSD を出す。ゲーム中でもフォーカスを奪わない |
-| プロファイル | 既定デバイス、デバイス音量、アプリごとの音量と出力先をまとめて保存し、ワンクリックかホットキーで呼び出す。起動していないアプリの分は、次に起動したときに当てる |
-| アプリ音量の記憶 | アプリごとの音量・ミュート・出力先を覚え、次にそのアプリが音を出したときに戻す。アプリ単位で除外できる |
-| 自動切替ルール | 「デバイスがつながったら／外れたら」「アプリが鳴り始めたら」に、既定デバイスの切り替えかプロファイル適用を行う。いま外しているヘッドホンも対象に選べる |
-| ダッキング | 指定アプリ（通話アプリなど）が鳴っている間だけ、他のアプリを元の音量の N% に下げる。止まって 1.5 秒（変更可）たつと戻す |
-| デバイスの整理 | 表示名の変更、使わないデバイスを隠す、既定以外のデバイスのアプリ一覧を折りたたむ |
-| ホットキー | マイクミュート、フライアウト開閉、音量上下、ミュート、出力デバイスの順送り、プロファイル適用、設定を開く |
+| アイコンを左クリック | 音量パネル（フライアウト）を開く・閉じる |
+| アイコンを右クリック | メニュー（出力・入力デバイスの切り替え、プロファイル、ミュート、設定、終了） |
+| アイコンを中クリック | 既定の出力デバイスをミュート・解除 |
+| アイコンの上でホイール | 既定の出力デバイスの音量を上げ下げ |
+| `Ctrl + Alt + M` | マイクのミュート・解除（画面下に表示が出る） |
+| `Ctrl + Alt + V` | 音量パネルを開く・閉じる |
 
-## 必要な環境
+ホットキーは設定画面で変更・追加できます。設定画面は、右クリックメニューの「SoundDeck の設定」か、音量パネル右上の歯車から開きます。
 
-- Windows 11（21H2 以降）x64（ARM64 向けのビルド設定も入れてあるが、実機では未確認）
-- ビルドする場合は .NET 10 SDK 10.0.400 以降
+### 音量パネル
 
-配布物は Windows App SDK を同梱しているので、使う側の PC にランタイムを入れる必要はありません。
+- 「出力」「入力」タブで、スピーカー類とマイク類を切り替えます
+- デバイスごとに音量・ミュート・ピークメーターがあり、その下にそのデバイスで鳴っているアプリが並びます
+- 既定以外のデバイスはアプリ一覧を折りたたんでいます。右上のアプリ数のボタンで開閉します
+- アプリ横の「…」から、そのアプリの出力先の変更、音量を覚えるかどうか、ダッキングのきっかけにするかを選べます
+- スライダーの上でホイールを回しても音量を変えられます
 
-## 起動
+## 機能
 
-プロジェクト直下で実行します。
+| 機能 | 内容 |
+| --- | --- |
+| アプリ別の音量 | デバイスごとに、鳴っているアプリの音量とミュートを操作 |
+| アプリ別の出力先 | アプリごとに出力先（入力元）のデバイスを指定 |
+| 既定デバイスの切り替え | ワンクリック・右クリックメニュー・ホットキーで切り替え。通話アプリ用の「通信デバイス」も一緒に切り替えるか選べる |
+| マイク管理 | 入力デバイスの音量・ミュート・既定の切り替え。マイクを使っているアプリも表示 |
+| プロファイル | 既定デバイス、デバイスの音量、アプリごとの音量と出力先をまとめて保存し、ワンクリックかホットキーで呼び出す |
+| アプリ音量の記憶 | アプリごとの音量・ミュート・出力先を覚え、次にそのアプリが音を出したときに戻す（アプリ単位で除外可） |
+| 自動切替ルール | 「ヘッドホンをつないだら既定にする」「このアプリが鳴り始めたらプロファイルを適用する」など |
+| ダッキング | 指定したアプリ（通話アプリなど）が鳴っている間だけ、他のアプリの音量を下げる |
+| デバイスの整理 | 表示名の変更、使わないデバイスを一覧から隠す |
+| 画面下の表示（OSD） | ホットキーでの変更を画面下に表示。ゲーム中でもフォーカスを奪わない |
+
+## Windows の起動時に自動で起動する
+
+設定画面の「一般」→「Windows の起動時に SoundDeck を開始する」をオンにします。最初はオフです。
+
+## アンインストール
+
+1. 設定画面の「一般」で「Windows の起動時に SoundDeck を開始する」をオフにします（オンにしていた場合）
+2. 右クリックメニューの「終了」で SoundDeck を終了します
+3. 展開したフォルダーを削除します
+4. 設定も消す場合は `%LOCALAPPDATA%\SoundDeck` フォルダーを削除します
+
+## プライバシー
+
+SoundDeck はインターネットに接続しません。設定とエラーログはこの PC の `%LOCALAPPDATA%\SoundDeck` にだけ保存します。
+
+| 場所 | 中身 |
+| --- | --- |
+| `%LOCALAPPDATA%\SoundDeck\settings.json` | 設定一式。壊れていたら `settings.json.broken-日時` に退避して既定値で起動する |
+| `%LOCALAPPDATA%\SoundDeck\logs\sounddeck.log` | エラーログ。1 MB を超えたら `.old` に回す |
+| レジストリ `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` の `SoundDeck` | 自動起動をオンにしたときだけ書く |
+
+## 動作環境と制限
+
+- Windows 11（21H2 以降）の x64。ARM64 向けのビルド設定も入れていますが、実機では確認していません
+- 画面の表示は日本語だけです
+- 既定デバイスの切り替えとアプリ別の出力先は、Windows が公開していない API を使っています（EarTrumpet や Windows のサウンド設定と同じもの）。Windows の更新で使えなくなる可能性があり、その場合はその操作だけが失敗して、他の機能は動き続けます
+
+## 不具合の報告
+
+[Issues](https://github.com/htani0817/SoundDeck/issues) にお願いします。Windows のバージョン（`winver` で表示されるもの）と、`%LOCALAPPDATA%\SoundDeck\logs\sounddeck.log` の該当部分があると調べやすくなります。
+
+## 開発者向け
+
+### ビルドと起動
+
+.NET 10 SDK（10.0.400 以降）が必要です。
 
 ```powershell
 dotnet build SoundDeck.slnx -c Debug -p:Platform=x64
 ./src/SoundDeck.App/bin/x64/Debug/net10.0-windows10.0.22621.0/SoundDeck.exe
 ```
 
-起動するとトレイアイコンだけが出ます。二重に起動した場合は、先に動いている方のフライアウトが開きます。
-
 | 起動オプション | 動作 |
 | --- | --- |
-| `--show` | 起動してすぐフライアウトを開く |
+| `--show` | 起動してすぐ音量パネルを開く |
 | `--settings` | 起動してすぐ設定を開く |
-| `--preview-flyout=x,y[,input]` | 見た目の確認用。座標 x,y のあるモニターに、フォーカスを奪わずにフライアウトを出す |
+| `--preview-flyout=x,y[,input]` | 見た目の確認用。座標 x,y のあるモニターに、フォーカスを奪わずに音量パネルを出す |
 | `--preview-settings=x,y,ページ名` | 同じく設定画面を出す（`general` `hotkeys` `devices` `memory` `profiles` `rules` `ducking` `about`） |
 | `--preview-osd=x,y` | 同じく OSD を出す |
 
-## 配布用に発行する
+二重に起動した場合は、先に動いている方の音量パネルが開きます。
+
+### テスト
+
+```powershell
+dotnet test tests/SoundDeck.Core.Tests
+```
+
+テストの対象は OS に依存しない判断部分（プロファイルの差分計算、ルールの一致と連続発火の抑止、ダッキングの下げ戻し、音量の記憶、設定の保存と壊れたファイルの退避、ホットキーの表示）です。GitHub Actions でも push と PR のたびに実行します。
+
+### 配布用に発行する
 
 ```powershell
 ./scripts/publish-win-x64.ps1                    # x64
 ./scripts/publish-win-x64.ps1 -Runtime win-arm64 # ARM64
 ```
 
-`artifacts/publish/win-x64/` にフォルダ一式、`artifacts/publish/SoundDeck-win-x64.zip` に ZIP ができます（ZIP で約 65 MiB）。単一 EXE にはしていません。WinUI 3 は単一ファイル化との相性が悪いためです。
+`artifacts/publish/<ランタイム>/` にフォルダー一式、`artifacts/publish/SoundDeck-<ランタイム>.zip` に ZIP ができます。WinUI 3 は単一ファイル化との相性が悪いため、フォルダー形式で配布しています。
 
-> [!warning] コード署名
-> EXE は未署名です。別の PC で初めて起動すると SmartScreen の警告が出ることがあります。
-
-## テスト
-
-```powershell
-dotnet test tests/SoundDeck.Core.Tests
-```
-
-テストの対象は OS に依存しない判断部分（プロファイルの差分計算、ルールの一致と連続発火の抑止、ダッキングの下げ戻し、音量記憶、設定の保存と壊れたファイルの退避、ホットキー表示）です。
-
-## データの置き場所
-
-| 場所 | 中身 |
-| --- | --- |
-| `%LOCALAPPDATA%\SoundDeck\settings.json` | 設定一式（BOM なし UTF-8）。壊れていたら `settings.json.broken-日時` に退避して既定値で起動する |
-| `%LOCALAPPDATA%\SoundDeck\logs\sounddeck.log` | エラーログ。1 MB を超えたら `.old` に回す |
-| `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` の `SoundDeck` | 「Windows の起動時に開始」をオンにしたときだけ書く |
-
-## 構成
+### 構成
 
 ```text
 sound-deck/
 ├─ src/
-│  ├─ SoundDeck.Core/    OS に依存しない設定・プロファイル・ルール・ダッキング・音量記憶
-│  ├─ SoundDeck.Audio/   Core Audio の COM interop（デバイス、セッション、既定切替、アプリ別出力先）
-│  └─ SoundDeck.App/     WinUI 3 本体（トレイ、フライアウト、設定、OSD、ホットキー）
+│  ├─ SoundDeck.Core/    OS に依存しない設定・プロファイル・ルール・ダッキング・音量の記憶
+│  ├─ SoundDeck.Audio/   Core Audio の COM interop（デバイス、セッション、既定の切り替え、アプリ別の出力先）
+│  └─ SoundDeck.App/     WinUI 3 本体（トレイ、音量パネル、設定、OSD、ホットキー）
 ├─ tests/SoundDeck.Core.Tests/
 ├─ scripts/publish-win-x64.ps1
 └─ docs/
 ```
 
-設計の理由は [[2026-10-13-技術選定と全体アーキテクチャ]] に書いています。
+設計の理由と実装中の落とし穴は [技術選定と全体アーキテクチャ](docs/2026-10-13-技術選定と全体アーキテクチャ.md) にまとめています。
 
-## 実機で確認してほしいこと
+## ライセンス
 
-描画の確認はしましたが、音量やデバイスを実際に切り替える操作は、ゲーム中の環境を乱さないよう自動では試していません。
+[MIT License](LICENSE) です。配布物に同梱している Windows App SDK などのライセンスは [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt) にあります。
 
-- [ ] トレイアイコンを左クリックでフライアウトが開き、外をクリックすると閉じる
-- [ ] フライアウトの「…」メニューやプロファイルメニューを開いても、フライアウトが閉じない
-- [ ] スライダーでデバイスとアプリの音量が変わり、Windows の音量ミキサーにも反映される
-- [ ] 「既定にする」で既定デバイスが切り替わる
-- [ ] アプリの「…」→「出力先」で別デバイスに移り、「既定に従う」で戻る
-- [ ] `Ctrl + Alt + M` でマイクがミュートされ、OSD が出る
-- [ ] アプリを閉じて開き直すと、変えた音量が戻る
-- [ ] ヘッドホンの抜き差しでルールが動く
-- [ ] ダッキングのきっかけにしたアプリが鳴ると、他のアプリの音量が下がって戻る
+## English
 
-## 注意
+SoundDeck is a volume mixer for Windows 11 that lives in the notification area. It offers per-app volume and output device selection, default device switching, a microphone tab with a global mute hotkey, saved profiles, per-app volume memory, automation rules (e.g. switch to headphones when they are plugged in) and ducking (lower other apps while a chat app is speaking). The UI is Japanese only for now.
 
-既定デバイスの切り替え（`IPolicyConfig`）とアプリ別の出力先（`Windows.Media.Internal.AudioPolicyConfig`）は、Windows が公開していない API です。EarTrumpet やサウンド設定と同じものを使っていますが、Windows の更新で使えなくなる可能性があります。その場合でも、その操作だけが失敗し（OSD とログに出る）、他の機能は動き続けます。
+Download `SoundDeck-win-x64.zip` from [Releases](https://github.com/htani0817/SoundDeck/releases), extract it anywhere and run `SoundDeck.exe`. The executable is not code-signed, so SmartScreen may warn you on first launch ("More info" → "Run anyway"). Licensed under the [MIT License](LICENSE).

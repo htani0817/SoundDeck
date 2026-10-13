@@ -16,10 +16,20 @@
     <EnableMsixTooling>true</EnableMsixTooling>
     <ApplicationIcon>Assets/SoundDeck.ico</ApplicationIcon>
     <Version>0.1.0</Version>
+    <!-- exe のプロパティ・タスクマネージャー・Windows の通知に出る名前 -->
+    <Product>SoundDeck</Product>
+    <AssemblyTitle>SoundDeck</AssemblyTitle>
+    <Description>Windows 11 向けの音量ミキサー</Description>
+    <Authors>htani0817</Authors>
+    <Company>htani0817</Company>
+    <Copyright>Copyright (c) 2026 htani0817</Copyright>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Assets/**" CopyToOutputDirectory="PreserveNewest" />
+    <!-- 配布物にライセンス文を同梱する（Windows App SDK の再配布条件のため） -->
+    <Content Include="../../LICENSE" Link="LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../THIRD-PARTY-NOTICES.txt" Link="THIRD-PARTY-NOTICES.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../SoundDeck.Core/SoundDeck.Core.csproj" />

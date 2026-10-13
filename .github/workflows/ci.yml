@@ -1,0 +1,29 @@
+# main と PR で、ビルド（警告ゼロ）とテストを確認する
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: テスト
+        run: dotnet test tests/SoundDeck.Core.Tests -c Release
+
+      - name: ビルド (x64)
+        run: dotnet build SoundDeck.slnx -c Release -p:Platform=x64
+
+      - name: ビルド (ARM64)
+        run: dotnet build SoundDeck.slnx -c Release -p:Platform=ARM64
