@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace SoundDeck.Audio.Interop;
 
-// ここにあるのは Windows が公開していない API。サウンド設定や EarTrumpet などが使っている定義に合わせている。
+// ここにあるのは Windows が公開していない API。Windows のサウンド設定が使っている定義に合わせている。
 // Windows の更新で使えなくなる可能性があるため、呼び出し側は失敗を前提に扱うこと。
 
 [ComImport]
