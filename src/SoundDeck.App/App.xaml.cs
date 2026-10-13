@@ -131,6 +131,16 @@ public partial class App : Application
             return;
         }
 
+        if (!Settings.Current.WelcomeShown)
+        {
+            // 初めて使う人はアイコンの場所が分からない（「^」の中に隠れることも多い）ので、一度だけ知らせる
+            _tray.ShowNotification(
+                "SoundDeck を起動しました",
+                "通知領域のスピーカーのアイコンをクリックすると音量ミキサーが開きます。見当たらないときはタスクバー右端の「^」の中を確認してください。");
+            Settings.Current.WelcomeShown = true;
+            Settings.ScheduleSave();
+        }
+
         if (Environment.GetCommandLineArgs().Contains("--settings"))
         {
             OpenSettings();

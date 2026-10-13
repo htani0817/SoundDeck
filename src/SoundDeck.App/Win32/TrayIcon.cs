@@ -68,6 +68,17 @@ internal sealed class TrayIcon : IDisposable
         }
     }
 
+    /// <summary>アイコンから Windows の通知を出す。</summary>
+    public void ShowNotification(string title, string text)
+    {
+        var data = CreateData();
+        data.Flags |= NativeMethods.NifInfo;
+        data.InfoTitle = title.Length > 63 ? title[..63] : title;
+        data.Info = text.Length > 255 ? text[..255] : text;
+        data.InfoFlags = NativeMethods.NiifInfo;
+        NativeMethods.ShellNotifyIcon(NativeMethods.NimModify, ref data);
+    }
+
     /// <summary>アイコンの画面上の位置（物理ピクセル）。</summary>
     public Rect? GetIconRect()
     {

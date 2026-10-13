@@ -11,6 +11,9 @@ public sealed class AppSettings
 {
     public int SchemaVersion { get; set; } = 1;
 
+    /// <summary>初回起動の案内を出したか。</summary>
+    public bool WelcomeShown { get; set; }
+
     public GeneralSettings General { get; set; } = new();
 
     public List<HotkeyBinding> Hotkeys { get; set; } = HotkeyBinding.CreateDefaults();

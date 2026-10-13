@@ -168,6 +168,8 @@ internal static partial class NativeMethods
     public const uint NifIcon = 0x2;
     public const uint NifTip = 0x4;
     public const uint NifShowTip = 0x80;
+    public const uint NifInfo = 0x10;
+    public const uint NiifInfo = 0x1;
     public const uint NotifyIconVersion4 = 4;
 
     public const int GwlExStyle = -20;
