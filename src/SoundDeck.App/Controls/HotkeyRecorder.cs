@@ -42,7 +42,7 @@ public sealed partial class HotkeyRecorder : Button
 
         _recording = true;
         // 登録済みのホットキーが反応してしまわないよう、記録中は一時的に外す
-        App.Current.Hotkeys.Suspend();
+        App.Current.Hotkeys?.Suspend();
         Content = "キーを押してください（Esc で取り消し）";
     }
 
@@ -54,7 +54,7 @@ public sealed partial class HotkeyRecorder : Button
         }
 
         _recording = false;
-        App.Current.Hotkeys.Resume();
+        App.Current.Hotkeys?.Resume();
         UpdateText();
     }
 

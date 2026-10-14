@@ -6,6 +6,7 @@ using SoundDeck.App.Views;
 using SoundDeck.App.Win32;
 using SoundDeck.Core.Commands;
 using SoundDeck.Core.Hotkeys;
+using SoundDeck.Core.Settings;
 
 namespace SoundDeck.App;
 
@@ -27,6 +28,7 @@ public partial class App : Application
     private OsdWindow? _osd;
     private SettingsWindow? _settingsWindow;
     private DispatcherQueueTimer? _trayUpdateTimer;
+    private AppTheme _appliedTheme;
 
     public App()
     {
@@ -44,43 +46,58 @@ public partial class App : Application
 
     internal AudioService Audio { get; private set; } = null!;
 
-    internal HotkeyManager Hotkeys => _hotkeys!;
+    /// <summary>確認用の起動では作らないので null。</summary>
+    internal HotkeyManager? Hotkeys => _hotkeys;
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        // 二重起動したときは、先に動いている方のフライアウトを開いて終わる
-        _singleInstance = new Mutex(true, MutexName, out var createdNew);
-        if (!createdNew)
-        {
-            if (EventWaitHandle.TryOpenExisting(ActivateEventName, out var existing))
-            {
-                existing.Set();
-                existing.Dispose();
-            }
+        var commandLine = Environment.GetCommandLineArgs();
 
+        // 見た目確認用の起動（--preview-*）は、動いている SoundDeck に触れない別のインスタンスとして動かす
+        // （二重起動の判定・トレイ・ホットキー・設定の保存・自動処理を使わない）
+        var isPreview = commandLine.Any(a => a.StartsWith("--preview-", StringComparison.Ordinal));
+
+        DispatcherShutdownMode = DispatcherShutdownMode.OnExplicitShutdown;
+        _dispatcher = DispatcherQueue.GetForCurrentThread();
+        if (!isPreview && !TryStartSingleInstance())
+        {
             Exit();
             return;
         }
 
-        DispatcherShutdownMode = DispatcherShutdownMode.OnExplicitShutdown;
-        _dispatcher = DispatcherQueue.GetForCurrentThread();
-        _activateEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ActivateEventName);
-        ThreadPool.RegisterWaitForSingleObject(_activateEvent, (_, _) => _dispatcher.TryEnqueue(() => _flyout?.Show()), null, -1, executeOnlyOnce: false);
-
-        // 右クリックメニューをダークテーマに追従させる（1 = AllowDark）
-        try
+        Settings = new SettingsService(_dispatcher, readOnly: isPreview);
+        if (isPreview)
         {
-            NativeMethods.SetPreferredAppMode(1);
-            NativeMethods.FlushMenuThemes();
-        }
-        catch (EntryPointNotFoundException)
-        {
+            PrepareSettingsForPreview(commandLine);
         }
 
-        Settings = new SettingsService(_dispatcher);
         Audio = new AudioService(_dispatcher, Settings);
         _flyout = new FlyoutWindow(Audio, Settings);
         _osd = new OsdWindow();
+        ApplyTheme();
+        Settings.Changed += (_, _) =>
+        {
+            Audio.ApplySettings();
+            _hotkeys?.Apply(Settings.Current.Hotkeys);
+            if (Settings.Current.General.Theme != _appliedTheme)
+            {
+                ApplyTheme();
+            }
+        };
+
+        if (isPreview)
+        {
+            try
+            {
+                ShowPreviewFromArgs(commandLine);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("確認用表示に失敗", ex);
+            }
+
+            return;
+        }
 
         _messageWindow = new MessageWindow();
         _messageWindow.MessageReceived += OnMessage;
@@ -108,28 +125,10 @@ public partial class App : Application
                 _osd.Show(message);
             }
         };
-        Settings.Changed += (_, _) =>
-        {
-            Audio.ApplySettings();
-            _hotkeys.Apply(Settings.Current.Hotkeys);
-        };
 
         SyncStartupRegistration();
         UpdateTrayIcon();
         Log.Info($"起動しました (アプリ別出力先: {(Audio.IsAppRoutingSupported ? "対応" : "非対応")})");
-
-        try
-        {
-            if (ShowPreviewFromArgs())
-            {
-                return;
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error("確認用表示に失敗", ex);
-            return;
-        }
 
         if (!Settings.Current.WelcomeShown)
         {
@@ -141,13 +140,55 @@ public partial class App : Application
             Settings.ScheduleSave();
         }
 
-        if (Environment.GetCommandLineArgs().Contains("--settings"))
+        if (commandLine.Contains("--settings"))
         {
             OpenSettings();
         }
-        else if (Environment.GetCommandLineArgs().Contains("--show"))
+        else if (commandLine.Contains("--show"))
         {
             _flyout.Show();
+        }
+    }
+
+    /// <summary>二重起動なら、先に動いている方のフライアウトを開いて false を返す。</summary>
+    private bool TryStartSingleInstance()
+    {
+        _singleInstance = new Mutex(true, MutexName, out var createdNew);
+        if (!createdNew)
+        {
+            if (EventWaitHandle.TryOpenExisting(ActivateEventName, out var existing))
+            {
+                existing.Set();
+                existing.Dispose();
+            }
+
+            return false;
+        }
+
+        _activateEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ActivateEventName);
+        ThreadPool.RegisterWaitForSingleObject(_activateEvent, (_, _) => _dispatcher!.TryEnqueue(() => _flyout?.Show()), null, -1, executeOnlyOnce: false);
+        return true;
+    }
+
+    /// <summary>
+    /// 確認用の起動では、動いている SoundDeck と二重に音量を動かさないよう自動処理を止める（保存はしない）。
+    /// --preview-theme=system|light|dark でテーマを差し替えられる。
+    /// </summary>
+    private void PrepareSettingsForPreview(string[] commandLine)
+    {
+        var current = Settings.Current;
+        current.VolumeMemory.Enabled = false;
+        current.Ducking.Enabled = false;
+        foreach (var rule in current.Rules)
+        {
+            rule.Enabled = false;
+        }
+
+        const string ThemeArg = "--preview-theme=";
+        var theme = commandLine.FirstOrDefault(a => a.StartsWith(ThemeArg, StringComparison.Ordinal));
+        if (theme is not null && Enum.TryParse<AppTheme>(theme[ThemeArg.Length..], ignoreCase: true, out var value))
+        {
+            current.General.Theme = value;
         }
     }
 
@@ -155,12 +196,12 @@ public partial class App : Application
     /// 見た目確認用の起動オプション。フォーカスを奪わずに指定モニターへ表示する（x,y はそのモニター上の点）。
     /// --preview-flyout=x,y[,input] / --preview-settings=x,y,ページ名 / --preview-osd=x,y
     /// </summary>
-    private bool ShowPreviewFromArgs()
+    private void ShowPreviewFromArgs(string[] commandLine)
     {
-        foreach (var arg in Environment.GetCommandLineArgs())
+        foreach (var arg in commandLine)
         {
             var eq = arg.IndexOf('=');
-            if (!arg.StartsWith("--preview-", StringComparison.Ordinal) || eq < 0)
+            if (!arg.StartsWith("--preview-", StringComparison.Ordinal) || eq < 0 || arg.StartsWith("--preview-theme=", StringComparison.Ordinal))
             {
                 continue;
             }
@@ -171,32 +212,65 @@ public partial class App : Application
             {
                 case "--preview-flyout":
                     _flyout!.ShowPreview(anchor, parts.Length > 2 && parts[2] == "input");
-                    return true;
+                    return;
                 case "--preview-settings":
-                    _settingsWindow = new SettingsWindow();
-                    _settingsWindow.Navigate(parts.Length > 2 ? parts[2] : null);
-                    _settingsWindow.ShowPreview(anchor);
-                    return true;
+                    var settingsWindow = GetOrCreateSettingsWindow();
+                    settingsWindow.Navigate(parts.Length > 2 ? parts[2] : null);
+                    settingsWindow.ShowPreview(anchor);
+                    return;
                 case "--preview-osd":
                     _osd!.Show(new OsdMessage(Glyphs.MicrophoneOff, "マイク: ミュート"), anchor);
-                    return true;
+                    return;
             }
         }
-
-        return false;
     }
 
     /// <summary>設定ウィンドウを開く。<paramref name="page"/> で最初に出すページを選べる。</summary>
     internal void OpenSettings(string? page = null)
     {
+        var window = GetOrCreateSettingsWindow();
+        window.Navigate(page);
+        window.Activate();
+    }
+
+    private SettingsWindow GetOrCreateSettingsWindow()
+    {
         if (_settingsWindow is null)
         {
             _settingsWindow = new SettingsWindow();
             _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+            WindowHelper.ApplyTheme(_settingsWindow, _appliedTheme);
         }
 
-        _settingsWindow.Navigate(page);
-        _settingsWindow.Activate();
+        return _settingsWindow;
+    }
+
+    /// <summary>設定のテーマを、開いているウィンドウと右クリックメニューに当てる。</summary>
+    private void ApplyTheme()
+    {
+        _appliedTheme = Settings.Current.General.Theme;
+        foreach (var window in new Window?[] { _flyout, _osd, _settingsWindow })
+        {
+            if (window is not null)
+            {
+                WindowHelper.ApplyTheme(window, _appliedTheme);
+            }
+        }
+
+        // 右クリックメニュー（Win32）も合わせる（1 = AllowDark: Windows に従う、2 = ForceDark、3 = ForceLight）
+        try
+        {
+            NativeMethods.SetPreferredAppMode(_appliedTheme switch
+            {
+                AppTheme.Dark => 2,
+                AppTheme.Light => 3,
+                _ => 1,
+            });
+            NativeMethods.FlushMenuThemes();
+        }
+        catch (EntryPointNotFoundException)
+        {
+        }
     }
 
     internal void Quit()

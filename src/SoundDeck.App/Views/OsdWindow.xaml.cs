@@ -1,7 +1,6 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using SoundDeck.App.Controls;
 using SoundDeck.App.Services;
 using SoundDeck.App.Win32;
 using Windows.Graphics;
@@ -22,7 +21,6 @@ public sealed partial class OsdWindow : Window
     {
         InitializeComponent();
         _hwnd = WindowHelper.GetHwnd(this);
-        SystemBackdrop = new AlwaysActiveAcrylicBackdrop();
 
         var presenter = OverlappedPresenter.Create();
         presenter.IsResizable = false;

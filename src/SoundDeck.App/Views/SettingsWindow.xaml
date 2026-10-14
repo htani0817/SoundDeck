@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="SoundDeck の設定">
 
-    <Grid>
+    <Grid Background="{ThemeResource SoundDeckWindowBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="48" />
             <RowDefinition Height="*" />
@@ -37,6 +37,10 @@
             OpenPaneLength="240"
             PaneDisplayMode="Left"
             SelectionChanged="OnNavSelectionChanged">
+            <NavigationView.Resources>
+                <!-- 中身の面もウィンドウと同じ黒・白にする（既定は少し明るい面を重ねる） -->
+                <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+            </NavigationView.Resources>
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="一般" Tag="general">
                     <NavigationViewItem.Icon>

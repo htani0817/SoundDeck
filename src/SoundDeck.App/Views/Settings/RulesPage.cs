@@ -1,6 +1,5 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using SoundDeck.App.ViewModels;
 using SoundDeck.Core.Commands;
 using SoundDeck.Core.Rules;
@@ -131,8 +130,7 @@ public sealed partial class RulesPage : SettingsPageBase
         var nameBox = new TextBox { PlaceholderText = "ルールの名前（省略可）", Width = 300 };
         var error = new TextBlock
         {
-            Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"],
-            Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+            Style = (Style)Application.Current.Resources["ErrorCaptionTextBlockStyle"],
         };
 
         var add = TextButton("ルールを追加", () =>
@@ -164,10 +162,7 @@ public sealed partial class RulesPage : SettingsPageBase
 
         return new Border
         {
-            Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"],
-            BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
-            BorderThickness = new Thickness(1),
-            CornerRadius = (CornerRadius)Application.Current.Resources["OverlayCornerRadius"],
+            Style = (Style)Application.Current.Resources["CardBorderStyle"],
             Padding = new Thickness(16),
             Child = panel,
         };

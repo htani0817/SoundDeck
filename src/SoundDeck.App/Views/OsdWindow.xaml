@@ -8,6 +8,7 @@
     <Grid
         x:Name="Root"
         Padding="18,0,20,0"
+        Background="{ThemeResource SoundDeckWindowBackgroundBrush}"
         ColumnSpacing="14">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />

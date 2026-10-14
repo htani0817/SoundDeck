@@ -1,16 +1,31 @@
 using Microsoft.UI.Xaml.Controls;
 using SoundDeck.App.Services;
 using SoundDeck.App.ViewModels;
+using SoundDeck.Core.Settings;
 
 namespace SoundDeck.App.Views.Settings;
 
 public sealed partial class GeneralPage : SettingsPageBase
 {
+    private static readonly (string Label, AppTheme Value)[] s_themes =
+    [
+        ("システムに合わせる", AppTheme.System),
+        ("ダーク", AppTheme.Dark),
+        ("ライト", AppTheme.Light),
+    ];
+
     protected override string PageTitle => "一般";
 
     protected override void Build()
     {
         var general = Current.General;
+
+        AddSection("外観");
+        AddCard("テーマ", "ダークは黒、ライトは白の背景で表示します。", "\uE790", Choice(s_themes, general.Theme, theme =>
+        {
+            general.Theme = theme;
+            Save();
+        }));
 
         AddSection("起動");
         AddCard("Windows の起動時に SoundDeck を開始する", "サインインすると通知領域に常駐します。", "\uE7E8", Toggle(general.LaunchAtStartup, on =>

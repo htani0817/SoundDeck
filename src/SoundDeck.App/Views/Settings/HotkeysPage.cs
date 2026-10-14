@@ -1,6 +1,5 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using SoundDeck.App.Controls;
 using SoundDeck.App.ViewModels;
 using SoundDeck.Core.Hotkeys;
@@ -66,8 +65,7 @@ public sealed partial class HotkeysPage : SettingsPageBase
 
         var status = new TextBlock
         {
-            Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
-            Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"],
+            Style = (Style)Application.Current.Resources["ErrorCaptionTextBlockStyle"],
             VerticalAlignment = VerticalAlignment.Center,
         };
         UpdateStatus(binding, status);
@@ -112,10 +110,7 @@ public sealed partial class HotkeysPage : SettingsPageBase
 
         return new Border
         {
-            Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"],
-            BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
-            BorderThickness = new Thickness(1),
-            CornerRadius = (CornerRadius)Application.Current.Resources["OverlayCornerRadius"],
+            Style = (Style)Application.Current.Resources["CardBorderStyle"],
             Padding = new Thickness(16, 12, 12, 12),
             Child = grid,
         };
@@ -127,7 +122,7 @@ public sealed partial class HotkeysPage : SettingsPageBase
         status.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
         {
             status.Text = binding.Enabled && binding.Gesture.IsValid
-                && App.Current.Hotkeys.Results.TryGetValue(binding.Id, out var ok) && !ok
+                && App.Current.Hotkeys?.Results.TryGetValue(binding.Id, out var ok) == true && !ok
                 ? "このキーはほかのアプリが使っているため登録できませんでした"
                 : "";
             status.Visibility = status.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
