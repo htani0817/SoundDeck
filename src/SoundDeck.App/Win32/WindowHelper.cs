@@ -1,5 +1,7 @@
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.Win32;
+using SoundDeck.Core.Settings;
 
 namespace SoundDeck.App.Win32;
 
@@ -20,6 +22,28 @@ internal static class WindowHelper
     {
         var style = NativeMethods.GetWindowLongPtr(hwnd, NativeMethods.GwlExStyle);
         NativeMethods.SetWindowLongPtr(hwnd, NativeMethods.GwlExStyle, style | NativeMethods.WsExToolWindow | NativeMethods.WsExNoActivate | NativeMethods.WsExTopmost);
+    }
+
+    /// <summary>設定のテーマをウィンドウに当てる。「システムに合わせる」は Windows のアプリ モードに従う。</summary>
+    public static void ApplyTheme(Window window, AppTheme theme)
+    {
+        if (window.Content is FrameworkElement root)
+        {
+            root.RequestedTheme = theme switch
+            {
+                AppTheme.Light => ElementTheme.Light,
+                AppTheme.Dark => ElementTheme.Dark,
+                _ => ElementTheme.Default,
+            };
+        }
+
+        // 枠と、最小化・閉じるボタンの色も合わせる
+        window.AppWindow.TitleBar.PreferredTheme = theme switch
+        {
+            AppTheme.Light => TitleBarTheme.Light,
+            AppTheme.Dark => TitleBarTheme.Dark,
+            _ => TitleBarTheme.UseDefaultAppMode,
+        };
     }
 
     public static double GetScale(IntPtr hwnd) => NativeMethods.GetDpiForWindow(hwnd) / 96.0;

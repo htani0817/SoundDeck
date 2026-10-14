@@ -1,6 +1,5 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using SoundDeck.App.Controls;
 using SoundDeck.App.Services;
 using SoundDeck.Core.Settings;
@@ -70,8 +69,7 @@ public abstract partial class SettingsPageBase : Page
     {
         Text = text,
         TextWrapping = TextWrapping.Wrap,
-        Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-        Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+        Style = (Style)Application.Current.Resources["SecondaryCaptionTextBlockStyle"],
         Margin = new Thickness(2, 0, 0, 8),
     });
 

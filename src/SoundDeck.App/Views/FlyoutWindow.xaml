@@ -6,227 +6,88 @@
     xmlns:vm="using:SoundDeck.App.ViewModels"
     Title="SoundDeck">
 
-    <Grid x:Name="Root" KeyDown="OnRootKeyDown">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <Grid.RenderTransform>
-            <TranslateTransform x:Name="SlideTransform" />
-        </Grid.RenderTransform>
+    <!-- 背景は外側に敷く（中身だけを動かして出すので、動いている間も背景が欠けない） -->
+    <Grid Background="{ThemeResource SoundDeckWindowBackgroundBrush}">
+        <Grid x:Name="Root" KeyDown="OnRootKeyDown">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="SlideTransform" />
+            </Grid.RenderTransform>
 
-        <Grid.Resources>
-            <!-- アプリ 1 行 -->
-            <DataTemplate x:Key="AppTemplate" x:DataType="vm:AppViewModel">
-                <Grid Margin="0,2,0,0" ColumnSpacing="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="34" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+            <Grid.Resources>
+                <!-- アプリ 1 行 -->
+                <DataTemplate x:Key="AppTemplate" x:DataType="vm:AppViewModel">
+                    <Grid Margin="0,2,0,0" ColumnSpacing="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="34" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-                    <Button
-                        Margin="0,14,0,0"
-                        AutomationProperties.Name="ミュート切り替え"
-                        Click="OnAppMuteClick"
-                        Style="{StaticResource SubtleIconButtonStyle}"
-                        Tag="{x:Bind}"
-                        ToolTipService.ToolTip="ミュート切り替え">
-                        <Grid Width="20" Height="20">
-                            <Image
-                                Width="20"
-                                Height="20"
-                                Opacity="{x:Bind vm:Bind.Opacity(IsMuted), Mode=OneWay}"
-                                Source="{x:Bind Icon, Mode=OneWay}" />
-                            <FontIcon
-                                FontSize="16"
-                                Glyph="{x:Bind FallbackGlyph}"
-                                Opacity="{x:Bind vm:Bind.Opacity(IsMuted), Mode=OneWay}"
-                                Visibility="{x:Bind vm:Bind.VisibleIfNull(Icon), Mode=OneWay}" />
-                            <Border
-                                Width="13"
-                                Height="13"
-                                Margin="0,0,-5,-5"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Bottom"
-                                Background="{ThemeResource SystemFillColorCriticalBrush}"
-                                CornerRadius="7"
-                                Visibility="{x:Bind vm:Bind.Visible(IsMuted), Mode=OneWay}">
+                        <Button
+                            Margin="0,14,0,0"
+                            AutomationProperties.Name="ミュート切り替え"
+                            Click="OnAppMuteClick"
+                            Style="{StaticResource SubtleIconButtonStyle}"
+                            Tag="{x:Bind}"
+                            ToolTipService.ToolTip="ミュート切り替え">
+                            <Grid Width="20" Height="20">
+                                <Image
+                                    Width="20"
+                                    Height="20"
+                                    Opacity="{x:Bind vm:Bind.Opacity(IsMuted), Mode=OneWay}"
+                                    Source="{x:Bind Icon, Mode=OneWay}" />
                                 <FontIcon
-                                    FontSize="8"
-                                    Foreground="White"
-                                    Glyph="&#xE74F;" />
-                            </Border>
-                        </Grid>
-                    </Button>
+                                    FontSize="16"
+                                    Glyph="{x:Bind FallbackGlyph}"
+                                    Opacity="{x:Bind vm:Bind.Opacity(IsMuted), Mode=OneWay}"
+                                    Visibility="{x:Bind vm:Bind.VisibleIfNull(Icon), Mode=OneWay}" />
+                                <Border
+                                    Width="13"
+                                    Height="13"
+                                    Margin="0,0,-5,-5"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"
+                                    Background="{ThemeResource SystemFillColorCriticalBrush}"
+                                    CornerRadius="7"
+                                    Visibility="{x:Bind vm:Bind.Visible(IsMuted), Mode=OneWay}">
+                                    <FontIcon
+                                        FontSize="8"
+                                        Foreground="White"
+                                        Glyph="&#xE74F;" />
+                                </Border>
+                            </Grid>
+                        </Button>
 
-                    <Grid Grid.Column="1">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <StackPanel
-                            Margin="10,0,0,0"
-                            Orientation="Horizontal"
-                            Spacing="6">
-                            <TextBlock
-                                MaxWidth="190"
-                                Opacity="{x:Bind vm:Bind.InactiveOpacity(IsActive), Mode=OneWay}"
-                                Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="{x:Bind DisplayName, Mode=OneWay}"
-                                TextTrimming="CharacterEllipsis"
-                                    TextWrapping="NoWrap" />
-                            <FontIcon
-                                FontSize="10"
-                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                Glyph="&#xE718;"
-                                ToolTipService.ToolTip="このアプリはこのデバイスに固定されています"
-                                Visibility="{x:Bind vm:Bind.VisibleIfNotNull(RoutedDeviceName), Mode=OneWay}" />
-                        </StackPanel>
-                        <Grid Grid.Row="1">
-                            <Rectangle Style="{StaticResource PeakTrackStyle}" />
-                            <Rectangle Style="{StaticResource PeakMeterStyle}">
-                                <Rectangle.RenderTransform>
-                                    <ScaleTransform ScaleX="{x:Bind Peak, Mode=OneWay}" />
-                                </Rectangle.RenderTransform>
-                            </Rectangle>
-                            <Slider
-                                AutomationProperties.Name="{x:Bind DisplayName, Mode=OneWay}"
-                                IsThumbToolTipEnabled="False"
-                                Maximum="100"
-                                Minimum="0"
-                                PointerWheelChanged="OnSliderWheel"
-                                StepFrequency="1"
-                                Value="{x:Bind Volume, Mode=TwoWay}" />
-                        </Grid>
-                    </Grid>
-
-                    <TextBlock
-                        Grid.Column="2"
-                        Margin="0,14,0,0"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        Style="{StaticResource BodyTextBlockStyle}"
-                        Text="{x:Bind vm:Bind.Percent(Volume), Mode=OneWay}" />
-
-                    <Button
-                        Grid.Column="3"
-                        Margin="0,14,0,0"
-                        AutomationProperties.Name="アプリのメニュー"
-                        Click="OnAppMoreClick"
-                        Style="{StaticResource SubtleIconButtonStyle}"
-                        Tag="{x:Bind}"
-                        ToolTipService.ToolTip="出力先・記憶・ダッキング">
-                        <FontIcon FontSize="14" Glyph="&#xE712;" />
-                    </Button>
-                </Grid>
-            </DataTemplate>
-
-            <!-- デバイス 1 枚 -->
-            <DataTemplate x:Key="DeviceTemplate" x:DataType="vm:DeviceViewModel">
-                <Border
-                    Padding="12,10,6,8"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="{StaticResource OverlayCornerRadius}">
-                    <StackPanel>
-                        <Grid ColumnSpacing="10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <FontIcon
-                                Margin="2,0,0,0"
-                                VerticalAlignment="Center"
-                                FontSize="18"
-                                Glyph="{x:Bind DeviceGlyph, Mode=OneWay}" />
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <Grid Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <StackPanel
+                                Margin="10,0,0,0"
+                                Orientation="Horizontal"
+                                Spacing="6">
                                 <TextBlock
-                                    Style="{StaticResource BodyStrongTextBlockStyle}"
-                                    Text="{x:Bind Name, Mode=OneWay}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="NoWrap" />
-                                <TextBlock
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    MaxWidth="250"
+                                    Opacity="{x:Bind vm:Bind.InactiveOpacity(IsActive), Mode=OneWay}"
                                     Style="{StaticResource CaptionTextBlockStyle}"
-                                    Text="{x:Bind SubName, Mode=OneWay}"
+                                    Text="{x:Bind DisplayName, Mode=OneWay}"
                                     TextTrimming="CharacterEllipsis"
-                                    TextWrapping="NoWrap" />
+                                        TextWrapping="NoWrap" />
+                                <FontIcon
+                                    FontSize="10"
+                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                    Glyph="&#xE718;"
+                                    ToolTipService.ToolTip="このアプリはこのデバイスに固定されています"
+                                    Visibility="{x:Bind vm:Bind.VisibleIfNotNull(RoutedDeviceName), Mode=OneWay}" />
                             </StackPanel>
-                            <Border
-                                Grid.Column="2"
-                                Padding="8,1,8,2"
-                                VerticalAlignment="Center"
-                                Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                CornerRadius="10"
-                                Visibility="{x:Bind vm:Bind.Visible(IsDefault), Mode=OneWay}">
-                                <TextBlock
-                                    FontSize="11"
-                                    Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                    Text="既定" />
-                            </Border>
-                            <Button
-                                Grid.Column="2"
-                                Padding="8,2"
-                                VerticalAlignment="Center"
-                                Click="OnSetDefaultClick"
-                                Content="既定にする"
-                                FontSize="11"
-                                Tag="{x:Bind}"
-                                Visibility="{x:Bind vm:Bind.Collapsed(IsDefault), Mode=OneWay}" />
-                            <Button
-                                Grid.Column="3"
-                                Height="32"
-                                Padding="8,0"
-                                AutomationProperties.Name="アプリの一覧を開く・閉じる"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Click="OnExpandClick"
-                                Tag="{x:Bind}"
-                                ToolTipService.ToolTip="このデバイスで鳴っているアプリ"
-                                Visibility="{x:Bind vm:Bind.Visible(HasApps), Mode=OneWay}">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon FontSize="12" Glyph="&#xE74C;" />
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        Style="{StaticResource CaptionTextBlockStyle}"
-                                        Text="{x:Bind AppCountText, Mode=OneWay}" />
-                                    <FontIcon FontSize="10" Glyph="{x:Bind ExpandGlyph, Mode=OneWay}" />
-                                </StackPanel>
-                            </Button>
-                            <Button
-                                Grid.Column="4"
-                                AutomationProperties.Name="デバイスのメニュー"
-                                Click="OnDeviceMoreClick"
-                                Style="{StaticResource SubtleIconButtonStyle}"
-                                Tag="{x:Bind}"
-                                ToolTipService.ToolTip="デバイスのメニュー">
-                                <FontIcon FontSize="14" Glyph="&#xE712;" />
-                            </Button>
-                        </Grid>
-
-                        <Grid Margin="0,6,0,0" ColumnSpacing="2">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="34" />
-                                <ColumnDefinition Width="32" />
-                            </Grid.ColumnDefinitions>
-                            <Button
-                                AutomationProperties.Name="ミュート切り替え"
-                                Click="OnDeviceMuteClick"
-                                Style="{StaticResource SubtleIconButtonStyle}"
-                                Tag="{x:Bind}"
-                                ToolTipService.ToolTip="ミュート切り替え">
-                                <FontIcon FontSize="16" Glyph="{x:Bind VolumeGlyph, Mode=OneWay}" />
-                            </Button>
-                            <Grid Grid.Column="1">
+                            <Grid Grid.Row="1">
                                 <Rectangle Style="{StaticResource PeakTrackStyle}" />
                                 <Rectangle Style="{StaticResource PeakMeterStyle}">
                                     <Rectangle.RenderTransform>
@@ -234,7 +95,7 @@
                                     </Rectangle.RenderTransform>
                                 </Rectangle>
                                 <Slider
-                                    AutomationProperties.Name="{x:Bind Name, Mode=OneWay}"
+                                    AutomationProperties.Name="{x:Bind DisplayName, Mode=OneWay}"
                                     IsThumbToolTipEnabled="False"
                                     Maximum="100"
                                     Minimum="0"
@@ -242,137 +103,273 @@
                                     StepFrequency="1"
                                     Value="{x:Bind Volume, Mode=TwoWay}" />
                             </Grid>
-                            <TextBlock
-                                Grid.Column="2"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center"
-                                Style="{StaticResource BodyStrongTextBlockStyle}"
-                                Text="{x:Bind vm:Bind.Percent(Volume), Mode=OneWay}" />
                         </Grid>
 
-                        <ItemsControl
-                            Margin="0,2,0,0"
-                            ItemTemplate="{StaticResource AppTemplate}"
-                            ItemsSource="{x:Bind Apps}"
-                            Visibility="{x:Bind vm:Bind.Visible(IsExpanded), Mode=OneWay}" />
-                    </StackPanel>
-                </Border>
-            </DataTemplate>
-        </Grid.Resources>
+                        <TextBlock
+                            Grid.Column="2"
+                            Margin="0,14,0,0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource BodyTextBlockStyle}"
+                            Text="{x:Bind vm:Bind.Percent(Volume), Mode=OneWay}" />
 
-        <!-- 見出し -->
-        <Grid Padding="14,10,8,6" ColumnSpacing="4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <SelectorBar x:Name="TabBar" SelectionChanged="OnTabChanged">
-                <SelectorBarItem x:Name="OutputTab" IsSelected="True" Text="出力">
-                    <SelectorBarItem.Icon>
-                        <FontIcon Glyph="&#xE7F5;" />
-                    </SelectorBarItem.Icon>
-                </SelectorBarItem>
-                <SelectorBarItem x:Name="InputTab" Text="入力">
-                    <SelectorBarItem.Icon>
-                        <FontIcon Glyph="&#xE720;" />
-                    </SelectorBarItem.Icon>
-                </SelectorBarItem>
-            </SelectorBar>
-            <Button
-                Grid.Column="1"
-                AutomationProperties.Name="Windows の音量ミキサー"
-                Click="OnOpenMixerClick"
-                Style="{StaticResource SubtleIconButtonStyle}"
-                ToolTipService.ToolTip="Windows の音量ミキサー">
-                <FontIcon FontSize="15" Glyph="&#xE9E9;" />
-            </Button>
-            <Button
-                Grid.Column="2"
-                AutomationProperties.Name="SoundDeck の設定"
-                Click="OnOpenSettingsClick"
-                Style="{StaticResource SubtleIconButtonStyle}"
-                ToolTipService.ToolTip="SoundDeck の設定">
-                <FontIcon FontSize="15" Glyph="&#xE713;" />
-            </Button>
-        </Grid>
+                        <Button
+                            Grid.Column="3"
+                            Margin="0,14,0,0"
+                            AutomationProperties.Name="アプリのメニュー"
+                            Click="OnAppMoreClick"
+                            Style="{StaticResource SubtleIconButtonStyle}"
+                            Tag="{x:Bind}"
+                            ToolTipService.ToolTip="出力先・記憶・ダッキング">
+                            <FontIcon FontSize="14" Glyph="&#xE712;" />
+                        </Button>
+                    </Grid>
+                </DataTemplate>
 
-        <!-- デバイス一覧 -->
-        <ScrollViewer
-            x:Name="Scroller"
-            Grid.Row="1"
-            Padding="12,2,12,12"
-            HorizontalScrollMode="Disabled"
-            VerticalScrollBarVisibility="Auto">
-            <StackPanel>
-                <ItemsControl x:Name="DeviceList" ItemTemplate="{StaticResource DeviceTemplate}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Spacing="8" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
-                <TextBlock
-                    x:Name="EmptyText"
-                    Margin="4,24"
-                    HorizontalAlignment="Center"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="デバイスがありません"
-                    Visibility="Collapsed" />
-            </StackPanel>
-        </ScrollViewer>
+                <!-- デバイス 1 枚 -->
+                <DataTemplate x:Key="DeviceTemplate" x:DataType="vm:DeviceViewModel">
+                    <Border Padding="12,10,6,8" Style="{StaticResource CardBorderStyle}">
+                        <StackPanel>
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon
+                                    Margin="2,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="18"
+                                    Glyph="{x:Bind DeviceGlyph, Mode=OneWay}" />
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock
+                                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                                        Text="{x:Bind Name, Mode=OneWay}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="NoWrap" />
+                                    <TextBlock
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind SubName, Mode=OneWay}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="NoWrap" />
+                                </StackPanel>
+                                <Border
+                                    Grid.Column="2"
+                                    Padding="8,1,8,2"
+                                    VerticalAlignment="Center"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    CornerRadius="10"
+                                    Visibility="{x:Bind vm:Bind.Visible(IsDefault), Mode=OneWay}">
+                                    <TextBlock
+                                        FontSize="11"
+                                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                        Text="既定" />
+                                </Border>
+                                <Button
+                                    Grid.Column="2"
+                                    Padding="8,2"
+                                    VerticalAlignment="Center"
+                                    Click="OnSetDefaultClick"
+                                    Content="既定にする"
+                                    FontSize="11"
+                                    Tag="{x:Bind}"
+                                    Visibility="{x:Bind vm:Bind.Collapsed(IsDefault), Mode=OneWay}" />
+                                <Button
+                                    Grid.Column="3"
+                                    Height="32"
+                                    Padding="8,0"
+                                    AutomationProperties.Name="アプリの一覧を開く・閉じる"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Click="OnExpandClick"
+                                    Tag="{x:Bind}"
+                                    ToolTipService.ToolTip="このデバイスで鳴っているアプリ"
+                                    Visibility="{x:Bind vm:Bind.Visible(HasApps), Mode=OneWay}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon FontSize="12" Glyph="&#xE74C;" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind AppCountText, Mode=OneWay}" />
+                                        <FontIcon FontSize="10" Glyph="{x:Bind ExpandGlyph, Mode=OneWay}" />
+                                    </StackPanel>
+                                </Button>
+                                <Button
+                                    Grid.Column="4"
+                                    AutomationProperties.Name="デバイスのメニュー"
+                                    Click="OnDeviceMoreClick"
+                                    Style="{StaticResource SubtleIconButtonStyle}"
+                                    Tag="{x:Bind}"
+                                    ToolTipService.ToolTip="デバイスのメニュー">
+                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
+                                </Button>
+                            </Grid>
 
-        <!-- 下の帯 -->
-        <Grid
-            Grid.Row="2"
-            Padding="12,8"
-            Background="{ThemeResource LayerOnAcrylicFillColorDefaultBrush}"
-            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-            BorderThickness="0,1,0,0"
-            ColumnSpacing="8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <DropDownButton x:Name="ProfileButton" AutomationProperties.Name="プロファイル">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon FontSize="14" Glyph="&#xE8F1;" />
-                    <TextBlock Text="プロファイル" />
-                </StackPanel>
-                <DropDownButton.Flyout>
-                    <MenuFlyout x:Name="ProfileMenu" Opening="OnProfileMenuOpening" Placement="TopEdgeAlignedLeft" />
-                </DropDownButton.Flyout>
-            </DropDownButton>
-            <Button
-                Grid.Column="2"
-                Click="OnOpenSoundSettingsClick"
-                Style="{StaticResource DefaultButtonStyle}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="サウンド設定" />
-                    <FontIcon FontSize="12" Glyph="&#xE8A7;" />
-                </StackPanel>
-            </Button>
-        </Grid>
+                            <Grid Margin="0,6,0,0" ColumnSpacing="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="34" />
+                                    <ColumnDefinition Width="32" />
+                                </Grid.ColumnDefinitions>
+                                <Button
+                                    AutomationProperties.Name="ミュート切り替え"
+                                    Click="OnDeviceMuteClick"
+                                    Style="{StaticResource SubtleIconButtonStyle}"
+                                    Tag="{x:Bind}"
+                                    ToolTipService.ToolTip="ミュート切り替え">
+                                    <FontIcon FontSize="16" Glyph="{x:Bind VolumeGlyph, Mode=OneWay}" />
+                                </Button>
+                                <Grid Grid.Column="1">
+                                    <Rectangle Style="{StaticResource PeakTrackStyle}" />
+                                    <Rectangle Style="{StaticResource PeakMeterStyle}">
+                                        <Rectangle.RenderTransform>
+                                            <ScaleTransform ScaleX="{x:Bind Peak, Mode=OneWay}" />
+                                        </Rectangle.RenderTransform>
+                                    </Rectangle>
+                                    <Slider
+                                        AutomationProperties.Name="{x:Bind Name, Mode=OneWay}"
+                                        IsThumbToolTipEnabled="False"
+                                        Maximum="100"
+                                        Minimum="0"
+                                        PointerWheelChanged="OnSliderWheel"
+                                        StepFrequency="1"
+                                        Value="{x:Bind Volume, Mode=TwoWay}" />
+                                </Grid>
+                                <TextBlock
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                                    Text="{x:Bind vm:Bind.Percent(Volume), Mode=OneWay}" />
+                            </Grid>
 
-        <!-- プロファイル名を入れて保存する小窓 -->
-        <FlyoutBase.AttachedFlyout>
-            <Flyout x:Name="SaveProfileFlyout" Placement="Top">
-                <StackPanel Width="260" Spacing="10">
-                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="今の状態をプロファイルに保存" />
+                            <ItemsControl
+                                Margin="0,2,0,0"
+                                ItemTemplate="{StaticResource AppTemplate}"
+                                ItemsSource="{x:Bind Apps}"
+                                Visibility="{x:Bind vm:Bind.Visible(IsExpanded), Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </Grid.Resources>
+
+            <!-- 見出し -->
+            <Grid Padding="14,10,8,6" ColumnSpacing="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <SelectorBar x:Name="TabBar" SelectionChanged="OnTabChanged">
+                    <SelectorBarItem x:Name="OutputTab" IsSelected="True" Text="出力">
+                        <SelectorBarItem.Icon>
+                            <FontIcon Glyph="&#xE7F5;" />
+                        </SelectorBarItem.Icon>
+                    </SelectorBarItem>
+                    <SelectorBarItem x:Name="InputTab" Text="入力">
+                        <SelectorBarItem.Icon>
+                            <FontIcon Glyph="&#xE720;" />
+                        </SelectorBarItem.Icon>
+                    </SelectorBarItem>
+                </SelectorBar>
+                <Button
+                    Grid.Column="1"
+                    AutomationProperties.Name="Windows の音量ミキサー"
+                    Click="OnOpenMixerClick"
+                    Style="{StaticResource SubtleIconButtonStyle}"
+                    ToolTipService.ToolTip="Windows の音量ミキサー">
+                    <FontIcon FontSize="15" Glyph="&#xE9E9;" />
+                </Button>
+                <Button
+                    Grid.Column="2"
+                    AutomationProperties.Name="SoundDeck の設定"
+                    Click="OnOpenSettingsClick"
+                    Style="{StaticResource SubtleIconButtonStyle}"
+                    ToolTipService.ToolTip="SoundDeck の設定">
+                    <FontIcon FontSize="15" Glyph="&#xE713;" />
+                </Button>
+            </Grid>
+
+            <!-- デバイス一覧 -->
+            <ScrollViewer
+                x:Name="Scroller"
+                Grid.Row="1"
+                Padding="12,2,12,12"
+                HorizontalScrollMode="Disabled"
+                VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <ItemsControl x:Name="DeviceList" ItemTemplate="{StaticResource DeviceTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Spacing="8" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
                     <TextBlock
+                        x:Name="EmptyText"
+                        Margin="4,24"
+                        HorizontalAlignment="Center"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Style="{StaticResource CaptionTextBlockStyle}"
-                        Text="既定デバイス、デバイス音量、アプリごとの音量と出力先を保存します。"
-                        TextWrapping="Wrap" />
-                    <TextBox x:Name="ProfileNameBox" KeyDown="OnProfileNameKeyDown" PlaceholderText="例: ゲーム、作業、配信" />
-                    <Button
-                        HorizontalAlignment="Right"
-                        Click="OnSaveProfileClick"
-                        Content="保存"
-                        Style="{StaticResource AccentButtonStyle}" />
+                        Text="デバイスがありません"
+                        Visibility="Collapsed" />
                 </StackPanel>
-            </Flyout>
-        </FlyoutBase.AttachedFlyout>
+            </ScrollViewer>
+
+            <!-- 下の帯 -->
+            <Grid
+                Grid.Row="2"
+                Padding="12,8"
+                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <DropDownButton x:Name="ProfileButton" AutomationProperties.Name="プロファイル">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon FontSize="14" Glyph="&#xE8F1;" />
+                        <TextBlock Text="プロファイル" />
+                    </StackPanel>
+                    <DropDownButton.Flyout>
+                        <MenuFlyout x:Name="ProfileMenu" Opening="OnProfileMenuOpening" Placement="TopEdgeAlignedLeft" />
+                    </DropDownButton.Flyout>
+                </DropDownButton>
+                <Button
+                    Grid.Column="2"
+                    Click="OnOpenSoundSettingsClick"
+                    Style="{StaticResource DefaultButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="サウンド設定" />
+                        <FontIcon FontSize="12" Glyph="&#xE8A7;" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- プロファイル名を入れて保存する小窓 -->
+            <FlyoutBase.AttachedFlyout>
+                <Flyout x:Name="SaveProfileFlyout" Placement="Top">
+                    <StackPanel Width="260" Spacing="10">
+                        <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="今の状態をプロファイルに保存" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="既定デバイス、デバイス音量、アプリごとの音量と出力先を保存します。"
+                            TextWrapping="Wrap" />
+                        <TextBox x:Name="ProfileNameBox" KeyDown="OnProfileNameKeyDown" PlaceholderText="例: ゲーム、作業、配信" />
+                        <Button
+                            HorizontalAlignment="Right"
+                            Click="OnSaveProfileClick"
+                            Content="保存"
+                            Style="{StaticResource AccentButtonStyle}" />
+                    </StackPanel>
+                </Flyout>
+            </FlyoutBase.AttachedFlyout>
+        </Grid>
     </Grid>
 </Window>

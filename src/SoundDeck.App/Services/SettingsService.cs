@@ -8,9 +8,12 @@ internal sealed class SettingsService
 {
     private readonly SettingsStore _store = new(AppPaths.SettingsFile);
     private readonly DispatcherQueueTimer _saveTimer;
+    private readonly bool _readOnly;
 
-    public SettingsService(DispatcherQueue dispatcher)
+    /// <param name="readOnly">true なら保存しない（見た目確認用の起動で、動いている SoundDeck の設定を書き換えないため）。</param>
+    public SettingsService(DispatcherQueue dispatcher, bool readOnly = false)
     {
+        _readOnly = readOnly;
         Current = _store.Load();
         _saveTimer = dispatcher.CreateTimer();
         _saveTimer.Interval = TimeSpan.FromMilliseconds(800);
@@ -39,6 +42,11 @@ internal sealed class SettingsService
     public void SaveNow()
     {
         _saveTimer.Stop();
+        if (_readOnly)
+        {
+            return;
+        }
+
         try
         {
             _store.Save(Current);

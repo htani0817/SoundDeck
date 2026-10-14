@@ -6,7 +6,6 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
-using SoundDeck.App.Controls;
 using SoundDeck.App.Services;
 using SoundDeck.App.ViewModels;
 using SoundDeck.App.Win32;
@@ -19,7 +18,7 @@ namespace SoundDeck.App.Views;
 /// <summary>トレイアイコンを押したときに出る音量パネル。</summary>
 public sealed partial class FlyoutWindow : Window
 {
-    private const double WidthDip = 380;
+    private const double WidthDip = 440;
     private const double MarginDip = 12;
 
     private readonly AudioService _audio;
@@ -38,7 +37,6 @@ public sealed partial class FlyoutWindow : Window
         InitializeComponent();
 
         _hwnd = WindowHelper.GetHwnd(this);
-        SystemBackdrop = new AlwaysActiveAcrylicBackdrop();
 
         var presenter = OverlappedPresenter.Create();
         presenter.IsResizable = false;

@@ -1,13 +1,12 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using SoundDeck.App.Views.Settings;
 using SoundDeck.App.Win32;
 using Windows.Graphics;
 
 namespace SoundDeck.App.Views;
 
-/// <summary>設定ウィンドウ（Windows 11 の設定アプリと同じ左ナビゲーション＋Mica）。</summary>
+/// <summary>設定ウィンドウ（Windows 11 の設定アプリと同じ左ナビゲーション。背景はテーマに合わせた黒・白）。</summary>
 public sealed partial class SettingsWindow : Window
 {
     private static readonly Dictionary<string, Type> s_pages = new()
@@ -25,7 +24,6 @@ public sealed partial class SettingsWindow : Window
     public SettingsWindow()
     {
         InitializeComponent();
-        SystemBackdrop = new MicaBackdrop();
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(TitleBarArea);
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "SoundDeck.ico"));

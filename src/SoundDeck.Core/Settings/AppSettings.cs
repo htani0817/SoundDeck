@@ -51,11 +51,30 @@ public sealed class AppSettings
         Ducking.DuckLevelPercent = Math.Clamp(Ducking.DuckLevelPercent, 0, 100);
         Ducking.ReleaseDelayMs = Math.Clamp(Ducking.ReleaseDelayMs, 0, 60_000);
         General.ScrollStepPercent = Math.Clamp(General.ScrollStepPercent, 1, 20);
+        if (!Enum.IsDefined(General.Theme))
+        {
+            General.Theme = AppTheme.System;
+        }
     }
+}
+
+/// <summary>画面の配色。</summary>
+public enum AppTheme
+{
+    /// <summary>Windows の設定（アプリ モード）に合わせる。</summary>
+    System,
+
+    /// <summary>白い背景。</summary>
+    Light,
+
+    /// <summary>黒い背景。</summary>
+    Dark,
 }
 
 public sealed class GeneralSettings
 {
+    public AppTheme Theme { get; set; } = AppTheme.System;
+
     public bool LaunchAtStartup { get; set; }
 
     public bool ShowPeakMeters { get; set; } = true;

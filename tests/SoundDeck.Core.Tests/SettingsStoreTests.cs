@@ -24,6 +24,7 @@ public sealed class SettingsStoreTests : IDisposable
         var settings = new SettingsStore(SettingsPath).Load();
 
         Assert.True(settings.General.ShowPeakMeters);
+        Assert.Equal(AppTheme.System, settings.General.Theme);
         Assert.Equal(2, settings.Hotkeys.Count);
     }
 
@@ -33,6 +34,7 @@ public sealed class SettingsStoreTests : IDisposable
         var store = new SettingsStore(SettingsPath);
         var settings = new AppSettings();
         settings.General.ShowOnlyDefaultDevice = true;
+        settings.General.Theme = AppTheme.Dark;
         settings.Profiles.Add(new Profile { Name = "ゲーム", DefaultOutputId = "{x}" });
         settings.Hotkeys[0].Modifiers = HotkeyModifiers.Win | HotkeyModifiers.Shift;
         settings.Devices["{x}"] = new DeviceCustomization { DisplayName = "机のスピーカー" };
@@ -41,6 +43,7 @@ public sealed class SettingsStoreTests : IDisposable
         var loaded = store.Load();
 
         Assert.True(loaded.General.ShowOnlyDefaultDevice);
+        Assert.Equal(AppTheme.Dark, loaded.General.Theme);
         Assert.Equal("ゲーム", Assert.Single(loaded.Profiles).Name);
         Assert.Equal(HotkeyModifiers.Win | HotkeyModifiers.Shift, loaded.Hotkeys[0].Modifiers);
         Assert.Equal("机のスピーカー", loaded.Devices["{x}"].DisplayName);
@@ -64,11 +67,12 @@ public sealed class SettingsStoreTests : IDisposable
     public void nullの項目は既定値に戻す()
     {
         Directory.CreateDirectory(_dir);
-        File.WriteAllText(SettingsPath, """{ "profiles": null, "ducking": { "triggerApps": null, "duckLevelPercent": 500 } }""");
+        File.WriteAllText(SettingsPath, """{ "profiles": null, "general": { "theme": 9 }, "ducking": { "triggerApps": null, "duckLevelPercent": 500 } }""");
 
         var settings = new SettingsStore(SettingsPath).Load();
 
         Assert.Empty(settings.Profiles);
+        Assert.Equal(AppTheme.System, settings.General.Theme);
         Assert.Empty(settings.Ducking.TriggerApps);
         Assert.Equal(100, settings.Ducking.DuckLevelPercent);
     }

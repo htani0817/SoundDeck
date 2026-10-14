@@ -4,6 +4,44 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:SoundDeck.App.Controls">
 
+    <!-- ウィンドウとカードの色。ダークは黒、ライトは白の背景にする（透ける背景はグレーに見えるため使わない） -->
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Default">
+            <SolidColorBrush x:Key="SoundDeckWindowBackgroundBrush" Color="#000000" />
+            <SolidColorBrush x:Key="SoundDeckCardBackgroundBrush" Color="#111111" />
+            <SolidColorBrush x:Key="SoundDeckCardStrokeBrush" Color="#262626" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="SoundDeckWindowBackgroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="SoundDeckCardBackgroundBrush" Color="#F6F6F6" />
+            <SolidColorBrush x:Key="SoundDeckCardStrokeBrush" Color="#E3E3E3" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="HighContrast">
+            <SolidColorBrush x:Key="SoundDeckWindowBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="SoundDeckCardBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="SoundDeckCardStrokeBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+
+    <!--
+        コードで組み立てる画面の色はスタイル経由で当てる。Application.Current.Resources から直接引いたブラシは
+        アプリ全体のテーマの色に固定され、設定でダーク・ライトを選んだウィンドウの色に追従しないため
+    -->
+    <Style x:Key="CardBorderStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource SoundDeckCardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource SoundDeckCardStrokeBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource OverlayCornerRadius}" />
+    </Style>
+
+    <Style x:Key="SecondaryCaptionTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlockStyle}">
+        <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style x:Key="ErrorCaptionTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlockStyle}">
+        <Setter Property="Foreground" Value="{ThemeResource SystemFillColorCriticalBrush}" />
+    </Style>
+
     <!-- 枠なしのアイコンボタン（Windows 11 のクイック設定にある小さなボタン） -->
     <Style x:Key="SubtleIconButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
         <Setter Property="Background" Value="Transparent" />
@@ -37,8 +75,8 @@
 
     <!-- 設定画面の 1 行（Windows 11 の設定アプリのカード） -->
     <Style TargetType="controls:SettingsCard">
-        <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="Background" Value="{ThemeResource SoundDeckCardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource SoundDeckCardStrokeBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource OverlayCornerRadius}" />
         <Setter Property="Padding" Value="16,12" />

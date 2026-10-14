@@ -15,7 +15,7 @@
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <EnableMsixTooling>true</EnableMsixTooling>
     <ApplicationIcon>Assets/SoundDeck.ico</ApplicationIcon>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <!-- exe のプロパティ・タスクマネージャー・Windows の通知に出る名前 -->
     <Product>SoundDeck</Product>
     <AssemblyTitle>SoundDeck</AssemblyTitle>
