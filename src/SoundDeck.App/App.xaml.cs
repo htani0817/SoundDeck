@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Diagnostics;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using SoundDeck.App.Services;
@@ -348,12 +350,28 @@ public partial class App : Application
         menu.Add("マイクをミュート", () => Audio.ToggleMicMute(), isChecked: Audio.DefaultInput?.IsMuted == true, enabled: Audio.DefaultInput is not null);
         menu.AddSeparator();
         menu.Add("Windows のサウンド設定", () => _ = Windows.System.Launcher.LaunchUriAsync(new Uri("ms-settings:sound")));
+        var classic = menu.AddSubmenu("サウンドの詳細設定");
+        classic.Add("再生デバイス", () => OpenSoundControlPanel(0));
+        classic.Add("録音デバイス", () => OpenSoundControlPanel(1));
         menu.Add("Windows の音量ミキサー", () => _ = Windows.System.Launcher.LaunchUriAsync(new Uri("ms-settings:apps-volume")));
         menu.Add("SoundDeck の設定", () => OpenSettings());
         menu.AddSeparator();
         menu.Add("終了", Quit);
 
         menu.Show(_messageWindow!.Handle, point);
+    }
+
+    /// <summary>Windows の「サウンド」画面（コントロール パネル）を、指定したタブ（0 = 再生、1 = 録音）で開く。</summary>
+    private static void OpenSoundControlPanel(int tab)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "control.exe"), $"mmsys.cpl,,{tab}") { UseShellExecute = false });
+        }
+        catch (Win32Exception ex)
+        {
+            Log.Error("サウンドの詳細設定を開けませんでした", ex);
+        }
     }
 
     private void AddDeviceSubmenu(NativeMenu menu, string title, DeviceFlow flow, string? defaultId)

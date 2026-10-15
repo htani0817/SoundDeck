@@ -294,13 +294,13 @@
                 </Button>
             </Grid>
 
-            <!-- デバイス一覧 -->
+            <!-- デバイス一覧（スクロールバーは出さず、ホイールでスクロールする） -->
             <ScrollViewer
                 x:Name="Scroller"
                 Grid.Row="1"
                 Padding="12,2,12,12"
                 HorizontalScrollMode="Disabled"
-                VerticalScrollBarVisibility="Auto">
+                VerticalScrollBarVisibility="Hidden">
                 <StackPanel>
                     <ItemsControl x:Name="DeviceList" ItemTemplate="{StaticResource DeviceTemplate}">
                         <ItemsControl.ItemsPanel>
