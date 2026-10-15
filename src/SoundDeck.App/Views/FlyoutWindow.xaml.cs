@@ -65,8 +65,9 @@ public sealed partial class FlyoutWindow : Window
         _audio.InputDevices.CollectionChanged += (_, _) => OnDevicesChanged();
         UpdateEmptyText();
 
-        // アプリの行が増減して中身の高さが変わったら、ウィンドウの高さも合わせる
-        ((FrameworkElement)Scroller.Content).SizeChanged += (_, _) => ScheduleReposition();
+        // アプリの行が増減して一覧の高さが変わったら、ウィンドウの高さも合わせる
+        // （スクロールの中身は表示領域いっぱいに広げられて縮んだことが分からないので、一覧の大きさで見る）
+        DeviceList.SizeChanged += (_, _) => ScheduleReposition();
     }
 
     public bool IsShown => AppWindow.IsVisible;
@@ -217,14 +218,15 @@ public sealed partial class FlyoutWindow : Window
     private void Reposition()
     {
         var (work, _, scale) = WindowHelper.GetMonitorAt(_anchor);
-        var maxHeightDip = (work.Height / scale) - (MarginDip * 2);
-
-        Root.Measure(new Windows.Foundation.Size(WidthDip, double.PositiveInfinity));
-        var heightDip = Math.Min(Math.Max(Root.DesiredSize.Height, 160), maxHeightDip);
-
         var width = (int)Math.Round(WidthDip * scale);
-        var height = (int)Math.Round(heightDip * scale);
         var margin = (int)Math.Round(MarginDip * scale);
+
+        // 枠のぶん中身の表示領域は外側より小さいので、中身の大きさで測ってから枠の高さを足す
+        var frameWidth = AppWindow.Size.Width - AppWindow.ClientSize.Width;
+        var frameHeight = AppWindow.Size.Height - AppWindow.ClientSize.Height;
+        Root.Measure(new Windows.Foundation.Size((width - frameWidth) / scale, double.PositiveInfinity));
+        var contentHeight = (int)Math.Ceiling(Math.Max(Root.DesiredSize.Height, 160) * scale);
+        var height = Math.Min(contentHeight + frameHeight, work.Height - (margin * 2));
 
         var x = _edge == TaskbarEdge.Left ? work.Left + margin : work.Right - width - margin;
         var y = _edge == TaskbarEdge.Top ? work.Top + margin : work.Bottom - height - margin;

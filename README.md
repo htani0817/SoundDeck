@@ -1,7 +1,7 @@
 ---
 title: SoundDeck
 date: 2026-10-13
-updated: 2026-10-14
+updated: 2026-10-15
 tags:
   - コーディング/csharp
   - コーディング/windows
@@ -19,11 +19,11 @@ Windows 11 向けの音量ミキサーです。通知領域（タスクバー右
 
 ## ダウンロードと起動
 
-1. [Releases](https://github.com/htani0817/SoundDeck/releases) から `SoundDeck-win-x64.zip` をダウンロードします
-2. 好きな場所に展開します（例: `C:\Users\<ユーザー名>\AppData\Local\Programs\SoundDeck`）
-3. 展開したフォルダーの `SoundDeck.exe` を起動します
+1. [Releases](https://github.com/htani0817/SoundDeck/releases) から `SoundDeck-v<バージョン>.exe`（例: `SoundDeck-v1.0.0.exe`）をダウンロードします
+2. 好きな場所に置きます（例: `C:\Users\<ユーザー名>\AppData\Local\Programs\SoundDeck`）
+3. その `SoundDeck-v<バージョン>.exe` を起動します
 
-インストーラーはありません。.NET や Windows App SDK を別に入れる必要もありません（ZIP に同梱しています）。
+インストーラーはありません。.NET や Windows App SDK を別に入れる必要もありません（exe に同梱しています）。初めて起動したときは、同梱している部品を `%TEMP%\.net\SoundDeck-v<バージョン>` に展開するため、少し時間がかかります。
 
 > [!WARNING]
 > 実行ファイルにはコード署名をしていないため、初回起動時に「Windows によって PC が保護されました」と表示されることがあります。「詳細情報」→「実行」を押すと起動できます。
@@ -36,7 +36,7 @@ Windows 11 向けの音量ミキサーです。通知領域（タスクバー右
 | 操作 | 動作 |
 | --- | --- |
 | アイコンを左クリック | 音量パネル（フライアウト）を開く・閉じる |
-| アイコンを右クリック | メニュー（出力・入力デバイスの切り替え、プロファイル、ミュート、設定、終了） |
+| アイコンを右クリック | メニュー（出力・入力デバイスの切り替え、プロファイル、ミュート、設定、Windows のサウンド画面（再生・録音デバイス）、終了） |
 | アイコンを中クリック | 既定の出力デバイスをミュート・解除 |
 | アイコンの上でホイール | 既定の出力デバイスの音量を上げ下げ |
 | `Ctrl + Alt + M` | マイクのミュート・解除（画面下に表示が出る） |
@@ -76,7 +76,7 @@ Windows 11 向けの音量ミキサーです。通知領域（タスクバー右
 
 1. 設定画面の「一般」で「Windows の起動時に SoundDeck を開始する」をオフにします（オンにしていた場合）
 2. 右クリックメニューの「終了」で SoundDeck を終了します
-3. 展開したフォルダーを削除します
+3. `SoundDeck-v<バージョン>.exe` と、展開先の `%TEMP%\.net\SoundDeck-v<バージョン>` フォルダーを削除します
 4. 設定も消す場合は `%LOCALAPPDATA%\SoundDeck` フォルダーを削除します
 
 ## プライバシー
@@ -136,7 +136,7 @@ dotnet test tests/SoundDeck.Core.Tests
 ./scripts/publish-win-x64.ps1 -Runtime win-arm64 # ARM64
 ```
 
-`artifacts/publish/<ランタイム>/` にフォルダー一式、`artifacts/publish/SoundDeck-<ランタイム>.zip` に ZIP ができます。WinUI 3 は単一ファイル化との相性が悪いため、フォルダー形式で配布しています。
+`artifacts/publish/SoundDeck-v<バージョン>.exe`（ARM64 は `SoundDeck-v<バージョン>-arm64.exe`）に配布用の exe が 1 つできます。バージョンは `src/SoundDeck.App/SoundDeck.App.csproj` の `Version` から取ります。Windows App SDK ごと 1 つにまとめた単一ファイル形式で、初回起動時に中身を `%TEMP%\.net` に展開して動きます。画面のリソースは exe 名に依存しない `resources.pri` にしてあるので、exe の名前を変えても起動できます。
 
 ### 構成
 
@@ -161,4 +161,4 @@ sound-deck/
 
 SoundDeck is a volume mixer for Windows 11 that lives in the notification area. It offers per-app volume and output device selection, default device switching, a microphone tab with a global mute hotkey, saved profiles, per-app volume memory, automation rules (e.g. switch to headphones when they are plugged in) and ducking (lower other apps while a chat app is speaking). The UI is Japanese only for now.
 
-Download `SoundDeck-win-x64.zip` from [Releases](https://github.com/htani0817/SoundDeck/releases), extract it anywhere and run `SoundDeck.exe`. The executable is not code-signed, so SmartScreen may warn you on first launch ("More info" → "Run anyway"). Licensed under the [MIT License](LICENSE).
+Download `SoundDeck-v<version>.exe` (e.g. `SoundDeck-v1.0.0.exe`) from [Releases](https://github.com/htani0817/SoundDeck/releases), put it anywhere and run it. No installer or runtime is needed; on first launch it unpacks its bundled components to `%TEMP%\.net`. The executable is not code-signed, so SmartScreen may warn you on first launch ("More info" → "Run anyway"). Licensed under the [MIT License](LICENSE).
