@@ -582,6 +582,11 @@ internal sealed class AudioService : IDisposable
         // 自分で変えた分はスライダーがすでに正しい位置にある（ドラッグ中に古い値で戻さないため反映しない）
         if (!e.IsSelf)
         {
+            if (vm.Flow == DeviceFlow.Capture)
+            {
+                LogExternalCaptureChange(vm.Name, vm, vm.Volume, vm.IsMuted, e);
+            }
+
             vm.SyncFromSystem(e.Volume, e.Muted);
         }
 
@@ -768,6 +773,18 @@ internal sealed class AudioService : IDisposable
         }
 
         // Windows の音量ミキサーやアプリ自身が変えた
+        if (app.Device.Flow == DeviceFlow.Capture)
+        {
+            // 入力側のセッション音量はマイク本体の音量と連動するので、本体と同じ値になっただけなら本体側のログで足りる
+            if (Math.Round(e.Volume * 100) != app.Device.Volume)
+            {
+                LogExternalCaptureChange($"{app.DisplayName}（{app.Device.Name}）", app.Device, app.Volume, app.IsMuted, e);
+            }
+
+            app.SyncFromSystem(e.Volume, e.Muted);
+            return;
+        }
+
         app.SyncFromSystem(e.Volume, e.Muted);
         _ducking.ForgetSession(session.InstanceId);
         if (_memory.Record(app.AppKey, app.DisplayName, e.Volume, e.Muted))
@@ -800,7 +817,8 @@ internal sealed class AudioService : IDisposable
     /// <summary>覚えている音量などを新しいセッションに戻す。出力先を変えたら true。</summary>
     private bool RestoreFromMemory(DeviceViewModel vm, AudioSession session, SessionInfo info)
     {
-        if (_memory.GetRestoreTarget(info.AppKey) is not { } entry)
+        // 記憶は出力側だけのもの。同じアプリのマイク側に出力の音量を当てない
+        if (vm.Flow == DeviceFlow.Capture || _memory.GetRestoreTarget(info.AppKey) is not { } entry)
         {
             return false;
         }
@@ -869,10 +887,33 @@ internal sealed class AudioService : IDisposable
 
     private void RecordMemory(AppViewModel app)
     {
+        // 記憶はアプリ単位で出力と入力を区別しないので、入力側の値は記録しない
+        if (app.Device.Flow == DeviceFlow.Capture)
+        {
+            return;
+        }
+
         if (_memory.Record(app.AppKey, app.DisplayName, (float)(app.Volume / 100), app.IsMuted))
         {
             _settings.ScheduleSave();
         }
+    }
+
+    /// <summary>
+    /// 入力側の音量が SoundDeck 以外から変わったことをログに残す（勝手に変わる原因を追うため）。
+    /// 変更元のアプリは OS から分からないので、そのときマイクを開いていたアプリを手がかりとして書く。
+    /// </summary>
+    private static void LogExternalCaptureChange(string target, DeviceViewModel device, double oldPercent, bool oldMuted, VolumeChangedEventArgs e)
+    {
+        var newPercent = Math.Round(e.Volume * 100);
+        if (newPercent == oldPercent && e.Muted == oldMuted)
+        {
+            return;
+        }
+
+        var mute = e.Muted == oldMuted ? "" : $" ミュート: {(oldMuted ? "オン" : "オフ")} → {(e.Muted ? "オン" : "オフ")}";
+        var apps = string.Join(", ", device.Apps.Select(a => a.IsActive ? $"{a.DisplayName}（録音中）" : a.DisplayName));
+        Log.Info($"入力の音量が外部で変更: {target} {oldPercent}% → {newPercent}%{mute} (context={e.EventContext}) マイクを開いているアプリ: {(apps.Length == 0 ? "なし" : apps)}");
     }
 
     // ---- ルール ----

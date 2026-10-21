@@ -118,7 +118,7 @@ public sealed class AudioSession : IDisposable
 
         public int OnSimpleVolumeChanged(float newVolume, bool newMute, ref Guid eventContext)
         {
-            owner.VolumeChanged?.Invoke(owner, new VolumeChangedEventArgs(newVolume, newMute, eventContext == AudioDevice.SelfContext));
+            owner.VolumeChanged?.Invoke(owner, new VolumeChangedEventArgs(newVolume, newMute, eventContext == AudioDevice.SelfContext, eventContext));
             return 0;
         }
 

@@ -500,8 +500,21 @@ public sealed partial class FlyoutWindow : Window
         var slider = (Slider)sender;
         var delta = e.GetCurrentPoint(slider).Properties.MouseWheelDelta;
         var step = _settings.Current.General.ScrollStepPercent;
+        var before = slider.Value;
         slider.Value = Math.Clamp(slider.Value + (Math.Sign(delta) * step), slider.Minimum, slider.Maximum);
         e.Handled = true;
+
+        // 一覧のスクロール中にスライダーへ乗って入力の音量が変わることがあるので、入力側だけ記録する
+        var target = slider.DataContext switch
+        {
+            DeviceViewModel { IsCapture: true } d => d.Name,
+            AppViewModel { Device.IsCapture: true } a => $"{a.DisplayName}（{a.Device.Name}）",
+            _ => null,
+        };
+        if (target is not null && slider.Value != before)
+        {
+            Log.Info($"ホイールで入力の音量を変更: {target} {before}% → {slider.Value}%");
+        }
     }
 
     private Core.Settings.DeviceCustomization GetCustomization(string id)
