@@ -20,8 +20,11 @@ public enum DeviceFormFactor
     Unknown = 10,
 }
 
-/// <summary>音量変更の通知。<see cref="IsSelf"/> は SoundDeck 自身が変えたとき true。</summary>
-public sealed record VolumeChangedEventArgs(float Volume, bool Muted, bool IsSelf);
+/// <summary>
+/// 音量変更の通知。<see cref="IsSelf"/> は SoundDeck 自身が変えたとき true。
+/// <see cref="EventContext"/> は変更した側が付けた印（どこから変えられたかの手がかり。付けないアプリは Guid.Empty）。
+/// </summary>
+public sealed record VolumeChangedEventArgs(float Volume, bool Muted, bool IsSelf, Guid EventContext);
 
 /// <summary>1 つのオーディオデバイス（スピーカー、ヘッドホン、マイクなど）。</summary>
 public sealed class AudioDevice : IDisposable
@@ -153,7 +156,7 @@ public sealed class AudioDevice : IDisposable
             var context = Marshal.PtrToStructure<Guid>(notifyData);
             var muted = Marshal.ReadInt32(notifyData, 16) != 0;
             var volume = BitConverter.Int32BitsToSingle(Marshal.ReadInt32(notifyData, 20));
-            owner.VolumeChanged?.Invoke(owner, new VolumeChangedEventArgs(volume, muted, context == SelfContext));
+            owner.VolumeChanged?.Invoke(owner, new VolumeChangedEventArgs(volume, muted, context == SelfContext, context));
             return 0;
         }
     }

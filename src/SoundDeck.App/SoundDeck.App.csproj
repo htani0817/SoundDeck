@@ -15,7 +15,7 @@
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <EnableMsixTooling>true</EnableMsixTooling>
     <ApplicationIcon>Assets/SoundDeck.ico</ApplicationIcon>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <!-- 画面のリソースを exe 名に依存しない名前にする（配布用に exe を SoundDeck-v1.0.0.exe などへ改名しても読み込めるように） -->
     <ProjectPriFileName>resources.pri</ProjectPriFileName>
     <!-- exe のプロパティ・タスクマネージャー・Windows の通知に出る名前 -->
