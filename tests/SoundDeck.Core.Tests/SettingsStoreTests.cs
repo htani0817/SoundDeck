@@ -78,6 +78,45 @@ public sealed class SettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void タスクバーの表示は既定で通知領域のアイコン()
+    {
+        var settings = new SettingsStore(SettingsPath).Load();
+
+        Assert.Equal(TrayDisplayMode.TrayIcon, settings.General.TrayDisplay);
+        Assert.Equal(WidgetMonitorMode.All, settings.General.WidgetMonitor);
+        Assert.Null(settings.General.WidgetMonitorDevice);
+    }
+
+    [Fact]
+    public void ウィジェットの表示先を保存して読み戻せる()
+    {
+        var store = new SettingsStore(SettingsPath);
+        var settings = new AppSettings();
+        settings.General.TrayDisplay = TrayDisplayMode.Widget;
+        settings.General.WidgetMonitor = WidgetMonitorMode.Specific;
+        settings.General.WidgetMonitorDevice = @"\\.\DISPLAY1";
+
+        store.Save(settings);
+        var loaded = store.Load();
+
+        Assert.Equal(TrayDisplayMode.Widget, loaded.General.TrayDisplay);
+        Assert.Equal(WidgetMonitorMode.Specific, loaded.General.WidgetMonitor);
+        Assert.Equal(@"\\.\DISPLAY1", loaded.General.WidgetMonitorDevice);
+    }
+
+    [Fact]
+    public void 知らないタスクバーの表示は既定値に戻す()
+    {
+        Directory.CreateDirectory(_dir);
+        File.WriteAllText(SettingsPath, """{ "general": { "trayDisplay": 9, "widgetMonitor": 9 } }""");
+
+        var settings = new SettingsStore(SettingsPath).Load();
+
+        Assert.Equal(TrayDisplayMode.TrayIcon, settings.General.TrayDisplay);
+        Assert.Equal(WidgetMonitorMode.All, settings.General.WidgetMonitor);
+    }
+
+    [Fact]
     public void ホットキー表示()
     {
         Assert.Equal("Ctrl + Alt + M", new HotkeyGesture(HotkeyModifiers.Control | HotkeyModifiers.Alt, 'M').ToString());

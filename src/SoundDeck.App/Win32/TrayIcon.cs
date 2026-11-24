@@ -13,6 +13,7 @@ internal sealed class TrayIcon : IDisposable
     private IntPtr _icon;
     private string _tooltip = "SoundDeck";
     private bool _added;
+    private bool _visible = true;
     private bool _disposed;
 
     public TrayIcon(MessageWindow window)
@@ -43,6 +44,33 @@ internal sealed class TrayIcon : IDisposable
     /// <summary>エクスプローラーが再起動してタスクバーが作り直された。</summary>
     public event EventHandler? TaskbarRecreated;
 
+    /// <summary>アイコン以外にホイールを受け付ける場所（タスクバーのウィジェット）の判定。</summary>
+    public Func<Point, bool>? ExtraWheelHitTest { get; set; }
+
+    /// <summary>通知領域にアイコンを出すか。消している間もアイコンと説明文は覚えておき、出すときに使う。</summary>
+    public void SetVisible(bool visible)
+    {
+        if (_visible == visible)
+        {
+            return;
+        }
+
+        _visible = visible;
+        if (!visible)
+        {
+            if (_added)
+            {
+                var data = CreateData();
+                NativeMethods.ShellNotifyIcon(NativeMethods.NimDelete, ref data);
+                _added = false;
+            }
+        }
+        else if (_icon != IntPtr.Zero)
+        {
+            AddOrModify();
+        }
+    }
+
     /// <summary>アイコンと説明文を変える。渡した HICON はこのクラスが破棄する。</summary>
     public void Update(IntPtr icon, string tooltip)
     {
@@ -50,6 +78,19 @@ internal sealed class TrayIcon : IDisposable
         _icon = icon;
         _tooltip = tooltip.Length > 127 ? tooltip[..127] : tooltip;
 
+        if (_visible)
+        {
+            AddOrModify();
+        }
+
+        if (old != IntPtr.Zero)
+        {
+            NativeMethods.DestroyIcon(old);
+        }
+    }
+
+    private void AddOrModify()
+    {
         var data = CreateData();
         if (!_added)
         {
@@ -60,11 +101,6 @@ internal sealed class TrayIcon : IDisposable
         else
         {
             NativeMethods.ShellNotifyIcon(NativeMethods.NimModify, ref data);
-        }
-
-        if (old != IntPtr.Zero)
-        {
-            NativeMethods.DestroyIcon(old);
         }
     }
 
@@ -181,7 +217,12 @@ internal sealed class TrayIcon : IDisposable
             return;
         }
 
-        if (NativeMethods.GetCursorPos(out var cursor) && GetIconRect() is { } rect && rect.Contains(cursor))
+        if (!NativeMethods.GetCursorPos(out var cursor))
+        {
+            return;
+        }
+
+        if ((_added && GetIconRect() is { } rect && rect.Contains(cursor)) || ExtraWheelHitTest?.Invoke(cursor) == true)
         {
             WheelScrolled?.Invoke(this, mouse->ButtonData);
         }

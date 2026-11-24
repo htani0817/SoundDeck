@@ -25,6 +25,8 @@ public partial class App : Application
     private DispatcherQueue? _dispatcher;
     private MessageWindow? _messageWindow;
     private TrayIcon? _tray;
+    private TaskbarWidgetHost? _widgets;
+    private int? _widgetCount;
     private HotkeyManager? _hotkeys;
     private FlyoutWindow? _flyout;
     private OsdWindow? _osd;
@@ -85,6 +87,8 @@ public partial class App : Application
             {
                 ApplyTheme();
             }
+
+            ApplyTaskbarDisplay();
         };
 
         if (isPreview)
@@ -108,7 +112,23 @@ public partial class App : Application
         _tray.MiddleClicked += (_, _) => Audio.ToggleDefaultMute(showOsd: false);
         _tray.ContextMenuRequested += (_, point) => ShowTrayMenu(point);
         _tray.WheelScrolled += (_, delta) => Audio.AdjustDefaultVolume(Math.Sign(delta) * Settings.Current.General.ScrollStepPercent, showOsd: false);
-        _tray.TaskbarRecreated += (_, _) => UpdateTrayIcon();
+        _tray.TaskbarRecreated += (_, _) =>
+        {
+            UpdateTrayIcon();
+            _widgets?.Refresh();
+        };
+
+        // タスクバーのウィジェット。イベントはウィジェット専用のスレッドから来るので、UI スレッドへ回す
+        _widgets = new TaskbarWidgetHost();
+        _widgets.Clicked += (_, _) => _dispatcher.TryEnqueue(() => _flyout.Toggle());
+        _widgets.MiddleClicked += (_, _) => _dispatcher.TryEnqueue(() => Audio.ToggleDefaultMute(showOsd: false));
+        _widgets.ContextMenuRequested += (_, point) => _dispatcher.TryEnqueue(() => ShowTrayMenu(point));
+        _widgets.PlacementChanged += (_, count) => _dispatcher.TryEnqueue(() =>
+        {
+            _widgetCount = count;
+            UpdateTrayVisibility();
+        });
+        _tray.ExtraWheelHitTest = _widgets.HitTest;
 
         _hotkeys = new HotkeyManager(_messageWindow);
         _hotkeys.Pressed += (_, binding) => OnHotkey(binding);
@@ -129,6 +149,7 @@ public partial class App : Application
         };
 
         SyncStartupRegistration();
+        ApplyTaskbarDisplay();
         UpdateTrayIcon();
         Log.Info($"起動しました (アプリ別出力先: {(Audio.IsAppRoutingSupported ? "対応" : "非対応")})");
 
@@ -279,6 +300,7 @@ public partial class App : Application
     {
         Settings.SaveNow();
         _hotkeys?.Dispose();
+        _widgets?.Dispose();
         _tray?.Dispose();
         Audio.Dispose();
         _messageWindow?.Dispose();
@@ -306,6 +328,7 @@ public partial class App : Application
         {
             // テーマや拡大率が変わったらアイコンを描き直す
             ScheduleTrayUpdate();
+            _widgets?.Refresh();
         }
     }
 
@@ -324,7 +347,9 @@ public partial class App : Application
 
         var device = Audio.DefaultOutput;
         var glyph = device is null ? Glyphs.Mute : Glyphs.ForVolume(device.Volume, device.IsMuted);
-        var color = WindowHelper.IsTaskbarLight() ? 0x1A1A1Au : 0xFFFFFFu;
+        var light = WindowHelper.IsTaskbarLight();
+        var color = light ? 0x1A1A1Au : 0xFFFFFFu;
+        _widgets?.Update(new TaskbarWidgetState(glyph, device is null ? "--" : $"{device.Volume:0}%", device?.IsMuted == true, light));
         var icon = GlyphIconRenderer.Render(glyph, color, WindowHelper.GetSmallIconSize());
         var tooltip = device is null
             ? "SoundDeck: 出力デバイスがありません"
@@ -349,6 +374,8 @@ public partial class App : Application
         menu.Add("出力をミュート", () => Audio.ToggleDefaultMute(showOsd: false), isChecked: Audio.DefaultOutput?.IsMuted == true, enabled: Audio.DefaultOutput is not null);
         menu.Add("マイクをミュート", () => Audio.ToggleMicMute(), isChecked: Audio.DefaultInput?.IsMuted == true, enabled: Audio.DefaultInput is not null);
         menu.AddSeparator();
+        AddTaskbarDisplayMenu(menu);
+        menu.AddSeparator();
         menu.Add("Windows のサウンド設定", () => _ = Windows.System.Launcher.LaunchUriAsync(new Uri("ms-settings:sound")));
         var classic = menu.AddSubmenu("サウンドの詳細設定");
         classic.Add("再生デバイス", () => OpenSoundControlPanel(0));
@@ -359,6 +386,96 @@ public partial class App : Application
         menu.Add("終了", Quit);
 
         menu.Show(_messageWindow!.Handle, point);
+    }
+
+    /// <summary>「タスクバーでの表示」と「ウィジェットの表示先」のサブメニュー。</summary>
+    private void AddTaskbarDisplayMenu(NativeMenu menu)
+    {
+        var general = Settings.Current.General;
+        var display = menu.AddSubmenu("タスクバーでの表示");
+        foreach (var (label, value) in TaskbarDisplayChoices)
+        {
+            display.Add(label, () => SetTaskbarDisplay(value), isChecked: general.TrayDisplay == value, radio: true);
+        }
+
+        var target = menu.AddSubmenu("ウィジェットの表示先", general.TrayDisplay != TrayDisplayMode.TrayIcon);
+        foreach (var (label, mode, device) in GetWidgetMonitorChoices(general))
+        {
+            var isChecked = general.WidgetMonitor == mode
+                && (mode != WidgetMonitorMode.Specific || string.Equals(general.WidgetMonitorDevice, device, StringComparison.OrdinalIgnoreCase));
+            target.Add(label, () => SetWidgetMonitor(mode, device), isChecked: isChecked, radio: true);
+        }
+    }
+
+    internal static readonly (string Label, TrayDisplayMode Value)[] TaskbarDisplayChoices =
+    [
+        ("通知領域のアイコン", TrayDisplayMode.TrayIcon),
+        ("タスクバーのウィジェット（アイコン + 音量）", TrayDisplayMode.Widget),
+        ("両方", TrayDisplayMode.Both),
+    ];
+
+    /// <summary>ウィジェットの表示先の選択肢。指定中のモニターがつながっていなければ「（未接続）」として残す。</summary>
+    internal static List<(string Label, WidgetMonitorMode Mode, string? Device)> GetWidgetMonitorChoices(GeneralSettings general)
+    {
+        var choices = new List<(string Label, WidgetMonitorMode Mode, string? Device)>
+        {
+            ("すべてのモニター", WidgetMonitorMode.All, null),
+            ("メインモニターのみ", WidgetMonitorMode.Primary, null),
+        };
+        var monitors = MonitorList.GetAll();
+        choices.AddRange(monitors.Select(m => ($"{m.Label} のみ", WidgetMonitorMode.Specific, (string?)m.Device)));
+        if (general.WidgetMonitor == WidgetMonitorMode.Specific
+            && !monitors.Any(m => string.Equals(m.Device, general.WidgetMonitorDevice, StringComparison.OrdinalIgnoreCase)))
+        {
+            choices.Add(($"{general.WidgetMonitorDevice} のみ（未接続）", WidgetMonitorMode.Specific, general.WidgetMonitorDevice));
+        }
+
+        return choices;
+    }
+
+    private void SetTaskbarDisplay(TrayDisplayMode mode)
+    {
+        Settings.Current.General.TrayDisplay = mode;
+        Settings.NotifyChanged();
+    }
+
+    internal void SetWidgetMonitor(WidgetMonitorMode mode, string? device)
+    {
+        var general = Settings.Current.General;
+        general.WidgetMonitor = mode;
+        general.WidgetMonitorDevice = mode == WidgetMonitorMode.Specific ? device : null;
+
+        // 通知領域のアイコンだけのときに表示先を選んだら、ウィジェットも出す
+        if (general.TrayDisplay == TrayDisplayMode.TrayIcon)
+        {
+            general.TrayDisplay = TrayDisplayMode.Widget;
+        }
+
+        Settings.NotifyChanged();
+    }
+
+    /// <summary>設定に合わせて、ウィジェットを出す場所と通知領域のアイコンの有無を変える。</summary>
+    private void ApplyTaskbarDisplay()
+    {
+        var general = Settings.Current.General;
+        _widgets?.Configure(general.TrayDisplay != TrayDisplayMode.TrayIcon, general.WidgetMonitor, general.WidgetMonitorDevice);
+        UpdateTrayVisibility();
+    }
+
+    /// <summary>
+    /// ウィジェットだけを出す設定でも、どのタスクバーにも置けなかったとき（モニターが外れた、エクスプローラーの仕様が変わったなど）は
+    /// 操作する場所がなくならないよう通知領域のアイコンを出す。
+    /// </summary>
+    private void UpdateTrayVisibility()
+    {
+        if (_tray is null)
+        {
+            return;
+        }
+
+        var mode = Settings.Current.General.TrayDisplay;
+        var visible = mode != TrayDisplayMode.Widget || _widgetCount == 0;
+        _tray.SetVisible(visible);
     }
 
     /// <summary>Windows の「サウンド」画面（コントロール パネル）を、指定したタブ（0 = 再生、1 = 録音）で開く。</summary>
