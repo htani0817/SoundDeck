@@ -1,7 +1,7 @@
 ---
 title: SoundDeck
 date: 2026-10-13
-updated: 2026-10-15
+updated: 2026-11-24
 tags:
   - コーディング/csharp
   - コーディング/windows
@@ -36,13 +36,22 @@ Windows 11 向けの音量ミキサーです。通知領域（タスクバー右
 | 操作 | 動作 |
 | --- | --- |
 | アイコンを左クリック | 音量パネル（フライアウト）を開く・閉じる |
-| アイコンを右クリック | メニュー（出力・入力デバイスの切り替え、プロファイル、ミュート、設定、Windows のサウンド画面（再生・録音デバイス）、終了） |
+| アイコンを右クリック | メニュー（出力・入力デバイスの切り替え、プロファイル、ミュート、タスクバーでの表示とウィジェットの表示先、設定、Windows のサウンド画面（再生・録音デバイス）、終了） |
 | アイコンを中クリック | 既定の出力デバイスをミュート・解除 |
 | アイコンの上でホイール | 既定の出力デバイスの音量を上げ下げ |
 | `Ctrl + Alt + M` | マイクのミュート・解除（画面下に表示が出る） |
 | `Ctrl + Alt + V` | 音量パネルを開く・閉じる |
 
-ホットキーは設定画面で変更・追加できます。設定画面は、右クリックメニューの「SoundDeck の設定」か、音量パネル右上の歯車から開きます。
+ホットキーは設定画面で変更・追加できます。
+
+### タスクバーのウィジェット
+
+右クリックメニューの「タスクバーでの表示」で「タスクバーのウィジェット（アイコン + 音量）」を選ぶと、タスクバーの通知領域の左（サブモニターでは時計の左）に、スピーカーのアイコンと音量（例: `75%`）を出します。クリック・中クリック・右クリック・ホイールは通知領域のアイコンと同じです。
+
+- 「ウィジェットの表示先」で、出すモニターを「すべてのモニター」「メインモニターのみ」「ディスプレイ 1 (上) のみ」などから選べます（Windows の通知領域のアイコンはメインモニターにしか出せないため、サブモニターで操作したいときに使います）
+- 「両方」を選ぶと、通知領域のアイコンとウィジェットの両方を出します
+- 選んだモニターが外れているなど、どのタスクバーにもウィジェットを置けないときは、通知領域のアイコンを出します
+- 設定画面の「一般」→「タスクバー」でも変えられます設定画面は、右クリックメニューの「SoundDeck の設定」か、音量パネル右上の歯車から開きます。
 
 ### 音量パネル
 
@@ -65,6 +74,7 @@ Windows 11 向けの音量ミキサーです。通知領域（タスクバー右
 | 自動切替ルール | 「ヘッドホンをつないだら既定にする」「このアプリが鳴り始めたらプロファイルを適用する」など |
 | ダッキング | 指定したアプリ（通話アプリなど）が鳴っている間だけ、他のアプリの音量を下げる |
 | デバイスの整理 | 表示名の変更、使わないデバイスを一覧から隠す |
+| タスクバーのウィジェット | アイコンと音量をタスクバーに出す。出すモニターを選べる（サブモニターのタスクバーにも置ける） |
 | 画面下の表示（OSD） | ホットキーでの変更を画面下に表示。ゲーム中でもフォーカスを奪わない |
 | テーマ | 設定の「一般」で「システムに合わせる」（最初の設定）・「ダーク」（黒い背景）・「ライト」（白い背景）を選べる |
 
@@ -93,6 +103,7 @@ SoundDeck はインターネットに接続しません。設定とログはこ�
 
 - Windows 11（21H2 以降）の x64。ARM64 向けのビルド設定も入れていますが、実機では確認していません
 - 画面の表示は日本語だけです
+- タスクバーのウィジェットは、タスクバー（エクスプローラー）のウィンドウに子ウィンドウを足して表示しています。Windows の更新でタスクバーの作りが変わると、位置がずれたり出なくなったりする可能性があります（出せないときは通知領域のアイコンに戻ります）。縦置きのタスクバーには対応していません
 - 既定デバイスの切り替えとアプリ別の出力先は、Windows が公開していない API を使っています（Windows のサウンド設定が使っているものと同じ）。Windows の更新で使えなくなる可能性があり、その場合はその操作だけが失敗して、他の機能は動き続けます
 
 ## 不具合の報告
@@ -159,6 +170,6 @@ sound-deck/
 
 ## English
 
-SoundDeck is a volume mixer for Windows 11 that lives in the notification area. It offers per-app volume and output device selection, default device switching, a microphone tab with a global mute hotkey, saved profiles, per-app volume memory, automation rules (e.g. switch to headphones when they are plugged in) and ducking (lower other apps while a chat app is speaking). The UI is Japanese only for now.
+SoundDeck is a volume mixer for Windows 11 that lives in the notification area. It offers per-app volume and output device selection, default device switching, a microphone tab with a global mute hotkey, saved profiles, per-app volume memory, automation rules (e.g. switch to headphones when they are plugged in), ducking (lower other apps while a chat app is speaking) and an optional taskbar widget (icon + volume) that can be placed on the taskbar of any monitor. The UI is Japanese only for now.
 
 Download `SoundDeck-v<version>.exe` (e.g. `SoundDeck-v1.0.0.exe`) from [Releases](https://github.com/htani0817/SoundDeck/releases), put it anywhere and run it. No installer or runtime is needed; on first launch it unpacks its bundled components to `%TEMP%\.net`. The executable is not code-signed, so SmartScreen may warn you on first launch ("More info" → "Run anyway"). Licensed under the [MIT License](LICENSE).

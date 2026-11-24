@@ -55,6 +55,16 @@ public sealed class AppSettings
         {
             General.Theme = AppTheme.System;
         }
+
+        if (!Enum.IsDefined(General.TrayDisplay))
+        {
+            General.TrayDisplay = TrayDisplayMode.TrayIcon;
+        }
+
+        if (!Enum.IsDefined(General.WidgetMonitor))
+        {
+            General.WidgetMonitor = WidgetMonitorMode.All;
+        }
     }
 }
 
@@ -69,6 +79,32 @@ public enum AppTheme
 
     /// <summary>黒い背景。</summary>
     Dark,
+}
+
+/// <summary>SoundDeck をタスクバーのどこに出すか。</summary>
+public enum TrayDisplayMode
+{
+    /// <summary>通知領域（タスクバー右下）のアイコン。</summary>
+    TrayIcon,
+
+    /// <summary>タスクバーに重ねるウィジェット（アイコン + 音量）。</summary>
+    Widget,
+
+    /// <summary>通知領域のアイコンとウィジェットの両方。</summary>
+    Both,
+}
+
+/// <summary>タスクバーのウィジェットを出すモニター。</summary>
+public enum WidgetMonitorMode
+{
+    /// <summary>タスクバーのあるすべてのモニター。</summary>
+    All,
+
+    /// <summary>メインモニターだけ。</summary>
+    Primary,
+
+    /// <summary><see cref="GeneralSettings.WidgetMonitorDevice"/> で指定したモニターだけ。</summary>
+    Specific,
 }
 
 public sealed class GeneralSettings
@@ -90,6 +126,15 @@ public sealed class GeneralSettings
 
     /// <summary>トレイアイコン上のホイール 1 段で変わる音量（%）。</summary>
     public int ScrollStepPercent { get; set; } = 2;
+
+    /// <summary>通知領域のアイコンで出すか、タスクバーのウィジェットで出すか。</summary>
+    public TrayDisplayMode TrayDisplay { get; set; } = TrayDisplayMode.TrayIcon;
+
+    /// <summary>ウィジェットを出すモニター。</summary>
+    public WidgetMonitorMode WidgetMonitor { get; set; } = WidgetMonitorMode.All;
+
+    /// <summary><see cref="WidgetMonitor"/> が Specific のときのモニター（例: \\.\DISPLAY1）。</summary>
+    public string? WidgetMonitorDevice { get; set; }
 }
 
 public sealed class DeviceCustomization
